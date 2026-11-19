@@ -22,7 +22,14 @@ td.occ{background:var(--teal);color:#fff}td.tod,th.tod{background:#f1e6cc}
 #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--teal2);color:#fff;padding:10px 16px;border-radius:8px;display:none}
 #toast.show{display:block}#toast.err{background:#9b2c2c}
 </style></head><body>
-<div id="app"></div><div id="toast"></div>
+<div id="app"><p style="padding:24px">Chargement…</p></div><div id="toast"></div>
+<script>
+function showErr(e){var m=(e&&e.message)||e||"inconnue";var a=document.getElementById("app");
+a.innerHTML='<div style="max-width:520px;margin:24px auto;padding:16px;background:#fff;border:1px solid #dcd8cc;border-radius:10px;font:15px system-ui"><b>Erreur</b><p style="word-break:break-word"></p><button onclick="location.reload()">Recharger</button></div>';
+a.querySelector("p").textContent=String(m);}
+window.addEventListener("unhandledrejection",function(e){showErr(e.reason)});
+window.addEventListener("error",function(e){showErr(e.error||e.message)});
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
 <script>
 /* === À REMPLIR : Supabase > Settings > API === */
@@ -172,5 +179,5 @@ async function roomStatus(id, st) {
   const r = await sb.from("rooms").update({ status: st }).eq("id", id);
   if (r.error) toast("Modification non autorisée pour votre rôle.", 1); refresh();
 }
-init();
+init().catch(showErr);
 </script></body></html>
