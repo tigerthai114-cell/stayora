@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stayora</title>
+<style>
+:root{--teal:#0f4c4a;--teal2:#0b3836;--gold:#c9a96e;--bg:#f6f5f1;--ink:#1d2b2a;--line:#dcd8cc}
+*{box-sizing:border-box}body{margin:0;font:15px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:var(--teal);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.brand{font-weight:700;letter-spacing:.12em;color:var(--gold)}header small{opacity:.8}
+main{max-width:1000px;margin:0 auto;padding:12px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.stat b{display:block;font-size:24px;color:var(--teal)}
+nav{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+button,input,select{font:inherit;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:#fff}
+button{cursor:pointer}button.p{background:var(--teal);color:#fff;border-color:var(--teal)}button.t.on{background:var(--gold);border-color:var(--gold)}
+button.s{padding:5px 8px;font-size:13px}
+form.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%}th,td{border:1px solid var(--line);padding:6px;text-align:center;font-size:13px;white-space:nowrap}
+td.occ{background:var(--teal);color:#fff}td.tod,th.tod{background:#f1e6cc}
+.row{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line)}
+.auth{max-width:360px;margin:8vh auto}.auth input{width:100%;margin-bottom:8px}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--teal2);color:#fff;padding:10px 16px;border-radius:8px;display:none}
+#toast.show{display:block}#toast.err{background:#9b2c2c}
+</style></head><body>
+<div id="app"></div><div id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
+<script>
+/* === À REMPLIR : Supabase > Settings > API === */
+const SUPABASE_URL = "https://ddkuxonxjdvzvfwvytjt.supabase.co";
+const SUPABASE_KEY = "sb_publishable_TlXBx7O2gPUNtNYTG0qoKw_EGo3a57Y";
+/* ============================================== */
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = s => document.querySelector(s);
+const esc = t => String(t ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const S = { tab: "cal", off: 0 };
+const ST = { pending:"En attente", confirmed:"Confirmée", checked_in:"Arrivé", checked_out:"Parti", cancelled:"Annulée", no_show:"No-show" };
+const RS = { available:"Disponible", occupied:"Occupée", to_clean:"À nettoyer", cleaning:"En nettoyage", out_of_service:"Hors service", maintenance:"Maintenance" };
+const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: S.prop.timezone }).format(new Date());
+const addDays = (d, n) => { const x = new Date(d + "T00:00:00Z"); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); };
+const toast = (m, err) => { const t = $("#toast"); t.textContent = m; t.className = "show" + (err ? " err" : ""); setTimeout(() => t.className = "", 4000); };
+const view = h => $("#app").innerHTML = h;
+
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return authView();
+  S.user = session.user;
+  const { data: m, error } = await sb.from("memberships").select("organization_id,role").eq("user_id", S.user.id);
+  if (error) return view(`<main><div class="card">Erreur : ${esc(error.message)}</div></main>`);
+  if (!m.length) return onboardView(false);
+  S.role = m[0].role; S.orgId = m[0].organization_id;
+  const { data: p } = await sb.from("properties").select("*").eq("organization_id", S.orgId).order("created_at");
+  if (!p || !p.length) return onboardView(true);
+  S.prop = p[0]; if (S.role === "housekeeping") S.tab = "rooms";
+  await load(); appView();
+}
+
+function authView() {
+  view(`<div class="auth card"><h2 class="brand">STAYORA</h2><p>Less complexity. More hospitality.</p>
+  <input id="em" type="email" placeholder="E-mail"><input id="pw" type="password" placeholder="Mot de passe (8 caractères min.)">
+  <button class="p" onclick="auth(true)">Se connecter</button> <button onclick="auth(false)">Créer un compte</button></div>`);
+}
+async function auth(login) {
+  const c = { email: $("#em").value.trim(), password: $("#pw").value };
+  const { data, error } = login ? await sb.auth.signInWithPassword(c) : await sb.auth.signUp(c);
+  if (error) return toast(error.message, 1);
+  if (!login && !data.session) return toast("Compte créé. Confirmez votre e-mail puis connectez-vous.");
+  init();
+}
+const signOut = async () => { await sb.auth.signOut(); S.user = null; authView(); };
+
+function onboardView(hasOrg) {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  view(`<div class="auth card"><h2>Créer votre établissement</h2><form onsubmit="onboard(event,${hasOrg})">
+  ${hasOrg ? "" : `<input name="org" placeholder="Nom de votre société" required>`}
+  <input name="prop" placeholder="Nom de l’établissement" required>
+  <input name="cur" value="EUR" maxlength="3" required><input name="tz" value="${esc(tz)}" required>
+  <button class="p">Créer</button></form></div>`);
+}
+async function onboard(e, hasOrg) {
+  e.preventDefault(); const f = new FormData(e.target); let org = S.orgId;
+  if (!hasOrg) { const r = await sb.rpc("create_organization", { p_name: f.get("org") }); if (r.error) return toast(r.error.message, 1); org = r.data; }
+  const r = await sb.from("properties").insert({ organization_id: org, name: f.get("prop"), currency: f.get("cur").toUpperCase(), timezone: f.get("tz") });
+  if (r.error) return toast(r.error.message, 1);
+  init();
+}
+
+async function load() {
+  const p = S.prop.id, q = t => sb.from(t).select("*").eq("property_id", p);
+  const [r, rr, rs, g] = await Promise.all([q("rooms").order("number"), q("reservation_rooms"), q("reservations").order("created_at", { ascending: false }), q("guests")]);
+  S.rooms = r.data || []; S.rr = rr.data || []; S.res = rs.data || []; S.guests = g.data || [];
+}
+const refresh = async () => { await load(); appView(); };
+const resOf = id => S.res.find(x => x.id === id) || {};
+const guestName = rid => { const g = S.guests.find(x => x.id === resOf(rid).guest_id); return g ? `${g.first_name} ${g.last_name}` : "Externe"; };
+
+function appView() {
+  const t = today(), live = S.rr.filter(x => x.is_blocking);
+  const occ = live.filter(x => x.check_in <= t && t < x.check_out && ["confirmed", "checked_in"].includes(resOf(x.reservation_id).status)).length;
+  const arr = live.filter(x => x.check_in === t && ["pending", "confirmed"].includes(resOf(x.reservation_id).status)).length;
+  const dep = live.filter(x => x.check_out === t && resOf(x.reservation_id).status === "checked_in").length;
+  const n = S.rooms.length, clean = S.rooms.filter(x => x.status === "to_clean").length;
+  const tabs = S.role === "housekeeping" ? [["rooms", "Chambres"]] : [["cal", "Calendrier"], ["res", "Réservations"], ["rooms", "Chambres"]];
+  view(`<header><div><span class="brand">STAYORA</span> <small>${esc(S.prop.name)}</small></div><button class="s" onclick="signOut()">Déconnexion</button></header>
+  <main><div class="card stats">
+   <div class="stat"><b>${n ? Math.round(occ / n * 100) : 0} %</b>Occupation</div><div class="stat"><b>${arr}</b>Arrivées</div>
+   <div class="stat"><b>${dep}</b>Départs</div><div class="stat"><b>${n - occ}</b>Libres</div><div class="stat"><b>${clean}</b>À nettoyer</div></div>
+  <nav>${tabs.map(([k, l]) => `<button class="t ${S.tab === k ? "on" : ""}" onclick="S.tab='${k}';appView()">${l}</button>`).join("")}</nav>
+  ${S.tab === "cal" ? calView() : S.tab === "res" ? resView() : roomsView()}</main>`);
+}
+
+function calView() {
+  const start = addDays(today(), S.off), days = Array.from({ length: 14 }, (_, i) => addDays(start, i)), t = today();
+  const head = days.map(d => `<th class="${d === t ? "tod" : ""}">${d.slice(8)}/${d.slice(5, 7)}</th>`).join("");
+  const rows = S.rooms.map(r => `<tr><th>${esc(r.number)}</th>${days.map(d => {
+    const x = S.rr.find(y => y.room_id === r.id && y.is_blocking && y.check_in <= d && d < y.check_out);
+    return x ? `<td class="occ">${esc(guestName(x.reservation_id).split(" ").pop())}</td>` : `<td class="${d === t ? "tod" : ""}"></td>`;
+  }).join("")}</tr>`).join("");
+  return `<div class="card"><button onclick="S.off-=7;appView()">◀</button> <button onclick="S.off=0;appView()">Aujourd’hui</button> <button onclick="S.off+=7;appView()">▶</button>
+  <div class="scroll"><table><tr><th></th>${head}</tr>${rows || `<tr><td>Ajoutez d’abord des chambres.</td></tr>`}</table></div></div>`;
+}
+
+function resView() {
+  const opts = S.rooms.map(r => `<option value="${r.id}">${esc(r.number)} ${esc(r.name || "")}</option>`).join("");
+  const list = S.res.map(r => {
+    const x = S.rr.find(y => y.reservation_id === r.id) || {}, room = S.rooms.find(y => y.id === x.room_id);
+    const b = (st, l) => `<button class="s" onclick="setStatus('${r.id}','${st}')">${l}</button>`;
+    return `<div class="row"><div><b>${esc(guestName(r.id))}</b> · ch. ${esc(room?.number)}<br>${esc(x.check_in)} → ${esc(x.check_out)} · ${esc(ST[r.status])} · ${esc(r.source)}</div>
+    <div>${r.status === "confirmed" ? b("checked_in", "Check-in") : ""}${r.status === "checked_in" ? b("checked_out", "Check-out") : ""}${["pending", "confirmed"].includes(r.status) ? b("cancelled", "Annuler") : ""}</div></div>`;
+  }).join("") || "<p>Aucune réservation.</p>";
+  return `<div class="card"><h3>Nouvelle réservation</h3><form class="g" onsubmit="createRes(event)">
+  <input name="fn" placeholder="Prénom" required><input name="ln" placeholder="Nom" required><input name="em" type="email" placeholder="E-mail"><input name="ph" placeholder="Téléphone">
+  <select name="room" required>${opts}</select><input name="ci" type="date" required><input name="co" type="date" required>
+  <input name="ad" type="number" min="1" value="1"><select name="src"><option value="direct">Direct</option><option>Téléphone</option><option>Booking.com</option><option>Airbnb</option><option>Autre</option></select>
+  <button class="p">Réserver</button></form></div><div class="card">${list}</div>`;
+}
+async function createRes(e) {
+  e.preventDefault(); const f = new FormData(e.target), o = S.orgId, p = S.prop.id, ci = f.get("ci"), co = f.get("co");
+  if (co <= ci) return toast("Le départ doit être après l’arrivée.", 1);
+  const g = await sb.from("guests").insert({ organization_id: o, property_id: p, first_name: f.get("fn"), last_name: f.get("ln"), email: f.get("em") || null, phone: f.get("ph") || null }).select().single();
+  if (g.error) return toast(g.error.message, 1);
+  const r = await sb.from("reservations").insert({ organization_id: o, property_id: p, guest_id: g.data.id, status: "confirmed", source: f.get("src"), adults: +f.get("ad"), created_by: S.user.id }).select().single();
+  if (r.error) { await sb.from("guests").delete().eq("id", g.data.id); return toast(r.error.message, 1); }
+  const x = await sb.from("reservation_rooms").insert({ organization_id: o, property_id: p, reservation_id: r.data.id, room_id: f.get("room"), check_in: ci, check_out: co });
+  if (x.error) {
+    await sb.from("reservations").delete().eq("id", r.data.id); await sb.from("guests").delete().eq("id", g.data.id);
+    return toast(x.error.code === "23P01" ? "Cette chambre est déjà réservée sur ces dates." : x.error.message, 1);
+  }
+  toast("Réservation créée."); refresh();
+}
+async function setStatus(id, st) {
+  const r = await sb.from("reservations").update({ status: st }).eq("id", id);
+  if (r.error) return toast(r.error.message, 1);
+  const x = S.rr.find(y => y.reservation_id === id);
+  if (x && st === "checked_in") await sb.from("rooms").update({ status: "occupied" }).eq("id", x.room_id);
+  if (x && st === "checked_out") await sb.from("rooms").update({ status: "to_clean" }).eq("id", x.room_id);
+  refresh();
+}
+
+function roomsView() {
+  const edit = ["org_admin", "manager"].includes(S.role);
+  const form = edit ? `<div class="card"><h3>Ajouter une chambre</h3><form class="g" onsubmit="addRoom(event)"><input name="num" placeholder="Numéro" required><input name="name" placeholder="Nom"><input name="desc" placeholder="Description"><button class="p">Ajouter</button></form></div>` : "";
+  const list = S.rooms.map(r => `<div class="row"><div><b>${esc(r.number)}</b> ${esc(r.name || "")}</div>
+  <select onchange="roomStatus('${r.id}',this.value)">${Object.entries(RS).map(([k, l]) => `<option value="${k}" ${k === r.status ? "selected" : ""}>${l}</option>`).join("")}</select></div>`).join("") || "<p>Aucune chambre.</p>";
+  return form + `<div class="card">${list}</div>`;
+}
+async function addRoom(e) {
+  e.preventDefault(); const f = new FormData(e.target);
+  const r = await sb.from("rooms").insert({ organization_id: S.orgId, property_id: S.prop.id, number: f.get("num"), name: f.get("name") || null, description: f.get("desc") || null });
+  if (r.error) return toast(r.error.message, 1); refresh();
+}
+async function roomStatus(id, st) {
+  const r = await sb.from("rooms").update({ status: st }).eq("id", id);
+  if (r.error) toast("Modification non autorisée pour votre rôle.", 1); refresh();
+}
+init();
+</script></body></html>
