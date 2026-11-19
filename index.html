@@ -21,6 +21,11 @@ td.occ{background:var(--teal);color:#fff}td.tod,th.tod{background:#f1e6cc}
 .auth{max-width:360px;margin:8vh auto}.auth input{width:100%;margin-bottom:8px}
 #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--teal2);color:#fff;padding:10px 16px;border-radius:8px;display:none}
 #toast.show{display:block}#toast.err{background:#9b2c2c}
+.rg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}@media(min-width:700px){.rg{grid-template-columns:repeat(3,1fr)}}
+.rc{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px}.rc h4{margin:8px 0 0;font-size:15px;color:var(--teal)}
+.mg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px}.mg .h{color:#8a8f87;font-size:11px}
+.d{padding:5px 0;border-radius:6px;cursor:pointer;font-weight:500}.d.on{background:var(--gold);color:#fff}.d.td{outline:2px solid var(--teal)}
+.nav2{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.sum{margin:6px 0}
 </style></head><body>
 <div id="app"><p style="padding:24px">Chargement…</p></div><div id="toast"></div>
 <script>
@@ -39,10 +44,10 @@ const SUPABASE_KEY = "sb_publishable_TlXBx7O2gPUNtNYTG0qoKw_EGo3a57Y";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = s => document.querySelector(s);
 const esc = t => String(t ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const S = { tab: "cal", off: 0 };
+const S = { tab: "cal", off: 0, mo: 0 };
 const ST = { pending:"En attente", confirmed:"Confirmée", checked_in:"Arrivé", checked_out:"Parti", cancelled:"Annulée", no_show:"No-show" };
 const RS = { available:"Disponible", occupied:"Occupée", to_clean:"À nettoyer", cleaning:"En nettoyage", out_of_service:"Hors service", maintenance:"Maintenance" };
-const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: S.prop.timezone }).format(new Date());
+const today = () => { try { return new Intl.DateTimeFormat("en-CA", { timeZone: S.prop.timezone }).format(new Date()); } catch (e) { return new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10); } };
 const addDays = (d, n) => { const x = new Date(d + "T00:00:00Z"); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); };
 const toast = (m, err) => { const t = $("#toast"); t.textContent = m; t.className = "show" + (err ? " err" : ""); setTimeout(() => t.className = "", 4000); };
 const view = h => $("#app").innerHTML = h;
@@ -116,18 +121,37 @@ function appView() {
 }
 
 function calView() {
-  const start = addDays(today(), S.off), days = Array.from({ length: 14 }, (_, i) => addDays(start, i)), t = today();
-  const head = days.map(d => `<th class="${d === t ? "tod" : ""}">${d.slice(8)}/${d.slice(5, 7)}</th>`).join("");
-  const rows = S.rooms.map(r => `<tr><th>${esc(r.number)}</th>${days.map(d => {
-    const x = S.rr.find(y => y.room_id === r.id && y.is_blocking && y.check_in <= d && d < y.check_out);
-    return x ? `<td class="occ">${esc(guestName(x.reservation_id).split(" ").pop())}</td>` : `<td class="${d === t ? "tod" : ""}"></td>`;
-  }).join("")}</tr>`).join("");
-  return `<div class="card"><button onclick="S.off-=7;appView()">◀</button> <button onclick="S.off=0;appView()">Aujourd’hui</button> <button onclick="S.off+=7;appView()">▶</button>
-  <div class="scroll"><table><tr><th></th>${head}</tr>${rows || `<tr><td>Ajoutez d’abord des chambres.</td></tr>`}</table></div></div>`;
+  const t = today(), base = new Date(+t.slice(0, 4), +t.slice(5, 7) - 1 + S.mo, 1);
+  const y = base.getFullYear(), m = base.getMonth(), dim = new Date(y, m + 1, 0).getDate(), lead = (base.getDay() + 6) % 7;
+  const ds = d => y + "-" + String(m + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+  const title = base.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  const live = S.rr.filter(x => x.is_blocking); let total = 0;
+  const cards = S.rooms.map(r => {
+    let cells = "<i></i>".repeat(lead), n = 0;
+    for (let d = 1; d <= dim; d++) {
+      const k = ds(d), x = live.find(z => z.room_id === r.id && z.check_in <= k && k < z.check_out);
+      if (x) n++;
+      cells += `<b class="d ${x ? "on" : ""} ${k === t ? "td" : ""}" onclick="dayTap('${r.id}','${k}')">${d}</b>`;
+    }
+    total += n;
+    return `<div class="rc"><div class="mg">${"LMMJVSD".split("").map(c => `<span class="h">${c}</span>`).join("")}${cells}</div><h4>${esc(r.number)}${r.name ? " · " + esc(r.name) : ""}</h4><small>${n} nuit(s)</small></div>`;
+  }).join("");
+  const occ = S.rooms.length ? Math.round(total / (S.rooms.length * dim) * 100) : 0;
+  return `<div class="card"><div class="nav2"><button onclick="S.mo--;appView()">‹</button><b style="text-transform:capitalize">${esc(title)}</b><button onclick="S.mo++;appView()">›</button></div>
+  <p class="sum">Ce mois : <b>${occ} % d’occupation</b> · ${total} nuit(s) · <button class="s" onclick="S.mo=0;appView()">Aujourd’hui</button></p>
+  <small>Touchez un jour occupé pour voir le client, un jour libre pour réserver.</small></div>
+  <div class="rg">${cards || "<div class='card'>Ajoutez d’abord des chambres.</div>"}</div>`;
+}
+function dayTap(room, k) {
+  const x = S.rr.find(z => z.room_id === room && z.is_blocking && z.check_in <= k && k < z.check_out);
+  if (x) return toast(guestName(x.reservation_id) + " · " + x.check_in + " → " + x.check_out);
+  if (S.role === "housekeeping") return;
+  S.pre = { room, ci: k }; S.tab = "res"; appView();
 }
 
 function resView() {
-  const opts = S.rooms.map(r => `<option value="${r.id}">${esc(r.number)} ${esc(r.name || "")}</option>`).join("");
+  const pre = S.pre || {}; S.pre = null;
+  const opts = S.rooms.map(r => `<option value="${r.id}" ${pre.room === r.id ? "selected" : ""}>${esc(r.number)} ${esc(r.name || "")}</option>`).join("");
   const list = S.res.map(r => {
     const x = S.rr.find(y => y.reservation_id === r.id) || {}, room = S.rooms.find(y => y.id === x.room_id);
     const b = (st, l) => `<button class="s" onclick="setStatus('${r.id}','${st}')">${l}</button>`;
@@ -136,7 +160,7 @@ function resView() {
   }).join("") || "<p>Aucune réservation.</p>";
   return `<div class="card"><h3>Nouvelle réservation</h3><form class="g" onsubmit="createRes(event)">
   <input name="fn" placeholder="Prénom" required><input name="ln" placeholder="Nom" required><input name="em" type="email" placeholder="E-mail"><input name="ph" placeholder="Téléphone">
-  <select name="room" required>${opts}</select><input name="ci" type="date" required><input name="co" type="date" required>
+  <select name="room" required>${opts}</select><input name="ci" type="date" value="${pre.ci || ""}" required><input name="co" type="date" required>
   <input name="ad" type="number" min="1" value="1"><select name="src"><option value="direct">Direct</option><option>Téléphone</option><option>Booking.com</option><option>Airbnb</option><option>Autre</option></select>
   <button class="p">Réserver</button></form></div><div class="card">${list}</div>`;
 }
@@ -168,7 +192,42 @@ function roomsView() {
   const form = edit ? `<div class="card"><h3>Ajouter une chambre</h3><form class="g" onsubmit="addRoom(event)"><input name="num" placeholder="Numéro" required><input name="name" placeholder="Nom"><input name="desc" placeholder="Description"><button class="p">Ajouter</button></form></div>` : "";
   const list = S.rooms.map(r => `<div class="row"><div><b>${esc(r.number)}</b> ${esc(r.name || "")}</div>
   <select onchange="roomStatus('${r.id}',this.value)">${Object.entries(RS).map(([k, l]) => `<option value="${k}" ${k === r.status ? "selected" : ""}>${l}</option>`).join("")}</select></div>`).join("") || "<p>Aucune chambre.</p>";
-  return form + `<div class="card">${list}</div>`;
+  const imp = edit ? `<div class="card"><h3>Importer l’ancienne application</h3><p>Choisissez le fichier de sauvegarde, ou collez son texte.</p><input type="file" id="impFile" accept=".json,application/json"><textarea id="impTxt" rows="3" placeholder="…ou collez ici le texte de la sauvegarde" style="width:100%;margin:8px 0;font:inherit;padding:9px;border-radius:8px;border:1px solid var(--line)"></textarea><button class="p" onclick="doImport()">Importer</button></div>` : "";
+  return form + imp + `<div class="card">${list}</div>`;
+}
+async function doImport() {
+  const f = $("#impFile").files[0]; let txt = $("#impTxt").value.trim();
+  if (f) txt = await f.text();
+  if (!txt) return toast("Choisissez un fichier ou collez le texte.", 1);
+  let d; try { d = JSON.parse(txt); } catch (e) { return toast("Fichier invalide.", 1); }
+  if (!d || !Array.isArray(d.bookings) || !Array.isArray(d.rooms)) return toast("Ce n’est pas une sauvegarde de l’ancienne application.", 1);
+  const o = S.orgId, p = S.prop.id, map = {}, dg = s => (String(s).match(/\d+/g) || []).pop(), t = today();
+  for (const r of d.rooms) {
+    let m = S.rooms.find(x => dg(x.number) && dg(x.number) === dg(r.name)) || S.rooms.find(x => x.number === r.name);
+    if (!m) {
+      const n = await sb.from("rooms").insert({ organization_id: o, property_id: p, number: String(r.name), name: String(r.name) }).select().single();
+      if (n.error) return toast("Chambre « " + r.name + " » : " + n.error.message, 1);
+      m = n.data; S.rooms.push(m);
+    }
+    map[r.id] = m.id;
+  }
+  let ok = 0; const skip = [];
+  for (const b of d.bookings) {
+    const room = map[b.room];
+    if (!room || !(b.start < b.end)) { skip.push((b.name || "?") + " (données incomplètes)"); continue; }
+    const parts = String(b.name || "Client").trim().split(/\s+/), ln = parts[parts.length - 1], fn = parts.length > 1 ? parts.slice(0, -1).join(" ") : "-";
+    const st = b.end <= t ? "checked_out" : b.start <= t ? "checked_in" : "confirmed";
+    const note = [b.notes, b.price ? "Prix/nuit : " + b.price : "", b.total ? "Total : " + b.total : "", b.pay ? "Paiement : " + b.pay : ""].filter(Boolean).join(" · ");
+    const g = await sb.from("guests").insert({ organization_id: o, property_id: p, first_name: fn, last_name: ln }).select().single();
+    if (g.error) { skip.push(b.name + " (" + g.error.message + ")"); continue; }
+    const r = await sb.from("reservations").insert({ organization_id: o, property_id: p, guest_id: g.data.id, status: st, source: "import", adults: Math.max(1, +b.guests || 1), notes: note || null, created_by: S.user.id }).select().single();
+    if (r.error) { await sb.from("guests").delete().eq("id", g.data.id); skip.push(b.name + " (" + r.error.message + ")"); continue; }
+    const x = await sb.from("reservation_rooms").insert({ organization_id: o, property_id: p, reservation_id: r.data.id, room_id: room, check_in: b.start, check_out: b.end });
+    if (x.error) { await sb.from("reservations").delete().eq("id", r.data.id); await sb.from("guests").delete().eq("id", g.data.id); skip.push(b.name + " (" + (x.error.code === "23P01" ? "chevauchement" : x.error.message) + ")"); continue; }
+    ok++;
+  }
+  await refresh();
+  alert(ok + " réservation(s) importée(s)." + (skip.length ? "\n\nIgnorées (" + skip.length + ") :\n" + skip.join("\n") : ""));
 }
 async function addRoom(e) {
   e.preventDefault(); const f = new FormData(e.target);
