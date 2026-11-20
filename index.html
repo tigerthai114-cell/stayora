@@ -2,7 +2,7 @@
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Stayora</title>
 <style>
-:root{--teal:#0f4c4a;--teal2:#0b3836;--gold:#c9a96e;--bg:#f6f5f1;--ink:#1d2b2a;--line:#dcd8cc}
+:root{--teal:#01403e;--teal2:#002b2b;--gold:#e0b55e;--bg:#f4f3ec;--ink:#1d2b2a;--line:#dcd8cc}
 *{box-sizing:border-box}body{margin:0;font:15px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--ink)}
 header{background:var(--teal);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .brand{font-weight:700;letter-spacing:.12em;color:var(--gold)}header small{opacity:.8}
@@ -28,6 +28,9 @@ td.occ{background:var(--teal);color:#fff}td.tod,th.tod{background:#f1e6cc}
 .nav2{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.sum{margin:6px 0}
 @media print{header,nav,.stats,button,#toast{display:none!important}body{background:#fff}}
 @media print{body.pinv>*:not(#inv){display:none!important}#inv{position:static!important}#inv .noprint{display:none!important}}
+.swg{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}.sw{display:flex;align-items:center;gap:6px;text-align:left}
+.sw span{width:16px;height:16px;border-radius:50%;display:inline-block;flex:none}.sw.on{outline:2px solid var(--teal)}
+label{display:block;font-size:13px}input[type=color]{display:block;width:100%;height:44px;padding:2px;margin-top:4px}
 </style></head><body>
 <div id="app"><p style="padding:24px">Chargement…</p></div><div id="toast"></div>
 <script>
@@ -46,16 +49,101 @@ const SUPABASE_KEY = "sb_publishable_TlXBx7O2gPUNtNYTG0qoKw_EGo3a57Y";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = s => document.querySelector(s);
 const esc = t => String(t ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+const LS = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
+let LANG = LS.get("stayora_lang") === "en" ? "en" : "fr";
+const LOC = () => LANG === "en" ? "en-GB" : "fr-FR";
+const THEMES = {
+  stayora: { n: "Vert Stayora", teal: "#01403e", teal2: "#002b2b", gold: "#e0b55e", bg: "#f4f3ec" },
+  petrole: { n: "Vert pétrole", teal: "#0f4c4a", teal2: "#0b3836", gold: "#c9a96e", bg: "#f6f5f1" },
+  sauge: { n: "Vert sauge", teal: "#4a6b57", teal2: "#374f41", gold: "#c8a25f", bg: "#f4f6f2" },
+  ocean: { n: "Bleu océan", teal: "#1d4e7a", teal2: "#143a5c", gold: "#e0a458", bg: "#f3f6f9" },
+  prune: { n: "Prune", teal: "#5b2a5e", teal2: "#431e46", gold: "#d4a85a", bg: "#f8f4f8" },
+  terre: { n: "Terre cuite", teal: "#a4482d", teal2: "#7d3520", gold: "#d9b26a", bg: "#f8f3ee" },
+  graphite: { n: "Graphite", teal: "#2f3a40", teal2: "#1f282c", gold: "#c9a96e", bg: "#f4f5f6" }
+};
+function themeVars() {
+  try { const t = JSON.parse(LS.get("stayora_theme") || "null"); if (t && t["--teal"]) return t; } catch (e) {}
+  const d = THEMES.stayora; return { "--teal": d.teal, "--teal2": d.teal2, "--gold": d.gold, "--bg": d.bg };
+}
+function curTheme() { const v = themeVars(); return Object.keys(THEMES).find(k => THEMES[k].teal === v["--teal"] && THEMES[k].gold === v["--gold"]) || ""; }
+function applyTheme() { const v = themeVars(); for (const k in v) document.documentElement.style.setProperty(k, v[k]); }
+function shade(hex, f) { const n = parseInt(hex.slice(1), 16); return "#" + [n >> 16, (n >> 8) & 255, n & 255].map(c => Math.round(c * f).toString(16).padStart(2, "0")).join(""); }
+function setTheme(k) { const t = THEMES[k]; LS.set("stayora_theme", JSON.stringify({ "--teal": t.teal, "--teal2": t.teal2, "--gold": t.gold, "--bg": t.bg })); applyTheme(); appView(); }
+function setCustom() { const m = $("#cMain").value, a = $("#cAcc").value; LS.set("stayora_theme", JSON.stringify({ "--teal": m, "--teal2": shade(m, .72), "--gold": a, "--bg": themeVars()["--bg"] })); applyTheme(); appView(); }
+function setBg(c) { const v = themeVars(); v["--bg"] = c; LS.set("stayora_theme", JSON.stringify(v)); applyTheme(); appView(); }
+function setLang(l) { LANG = l; LS.set("stayora_lang", l); document.documentElement.lang = l; if (S.user && S.prop) appView(); else if (S.user) location.reload(); else authView(); }
+const EN = {
+  "E-mail": "Email", "Mot de passe (8 caractères min.)": "Password (min. 8 characters)", "Se connecter": "Sign in", "Créer un compte": "Create account", "Déconnexion": "Sign out",
+  "Compte créé. Confirmez votre e-mail puis connectez-vous.": "Account created. Confirm your email, then sign in.",
+  "Créer votre établissement": "Create your property", "Nom de votre société": "Company name", "Nom de l’établissement": "Property name", "Créer": "Create",
+  "Occupation": "Occupancy", "Arrivées": "Arrivals", "Départs": "Departures", "Libres": "Vacant", "À nettoyer": "To clean",
+  "Calendrier": "Calendar", "Réservations": "Reservations", "Résumé": "Summary", "Chambres": "Rooms", "Réglages": "Settings",
+  "Arrivées aujourd’hui": "Today’s arrivals", "Départs aujourd’hui": "Today’s departures", "Aujourd’hui": "Today",
+  "Touchez un jour occupé pour modifier la réservation, un jour libre pour réserver.": "Tap a booked day to edit the reservation, a free day to book.",
+  "Ajoutez d’abord des chambres.": "Add some rooms first.",
+  "Nouvelle réservation": "New reservation", "Prénom": "First name", "Nom": "Last name", "Téléphone": "Phone", "Autre": "Other", "Réserver": "Book",
+  "Placer un client automatiquement": "Place a guest automatically", "Choisit la première chambre libre sur ces dates.": "Picks the first free room on these dates.", "Placer": "Place",
+  "Rechercher un client, une chambre…": "Search a guest, a room…", "Aucune réservation.": "No reservations.",
+  "En attente": "Pending", "Confirmée": "Confirmed", "Arrivé": "Checked in", "Parti": "Checked out", "Annulée": "Cancelled", "Direct": "Direct",
+  "Modifier": "Edit", "Annuler": "Cancel", "Facture": "Invoice", "Paiement": "Payment",
+  "Modifier la réservation": "Edit reservation", "Blocage externe (sans client)": "External block (no guest)", "Enregistrer": "Save", "Fermer": "Close",
+  "Total du séjour": "Stay total", "Enregistrer le total": "Save total", "Aucun paiement enregistré.": "No payment recorded.", "Montant reçu": "Amount received",
+  "Acompte": "Deposit", "Remboursement": "Refund", "Espèces": "Cash", "Carte bancaire": "Bank card", "Virement": "Bank transfer", "Note (facultatif)": "Note (optional)",
+  "Enregistrer le paiement": "Save payment", "N’enregistrez un paiement qu’après l’avoir réellement reçu.": "Only record a payment once you have actually received it.",
+  "Ajouter une chambre": "Add a room", "Numéro": "Number", "Ajouter": "Add", "Aucune chambre.": "No rooms.",
+  "Disponible": "Available", "Occupée": "Occupied", "En nettoyage": "Being cleaned", "Hors service": "Out of service",
+  "Importer l’ancienne application": "Import the old application", "Choisissez le fichier de sauvegarde, ou collez son texte.": "Choose the backup file, or paste its text.",
+  "…ou collez ici le texte de la sauvegarde": "…or paste the backup text here", "Importer": "Import",
+  "Imprimer / PDF": "Print / PDF", "Client": "Guest", "Ch.": "Rm.", "Séjour": "Stay", "Nuits": "Nights", "Aucun séjour ce mois-ci.": "No stays this month.",
+  "Client :": "Guest:", "Chambre :": "Room:", "Séjour :": "Stay:", "Hébergement": "Accommodation", "Paiements reçus": "Payments received", "Aucun paiement": "No payments",
+  "Le départ doit être après l’arrivée.": "Check-out must be after check-in.", "Cette chambre est déjà réservée sur ces dates.": "This room is already booked on these dates.",
+  "Réservation créée.": "Reservation created.", "Aucune chambre libre sur ces dates.": "No free room on these dates.", "Réservation modifiée.": "Reservation updated.",
+  "Cette chambre est déjà réservée sur ces dates. Rien n’a été modifié.": "This room is already booked on these dates. Nothing was changed.",
+  "Montant invalide.": "Invalid amount.", "Total enregistré.": "Total saved.", "Paiement enregistré.": "Payment saved.",
+  "La table des paiements n’existe pas encore : étape Supabase à faire.": "The payments table does not exist yet: Supabase step required.",
+  "Modification non autorisée pour votre rôle.": "Change not allowed for your role.", "Fichier invalide.": "Invalid file.",
+  "Choisissez un fichier ou collez le texte.": "Choose a file or paste the text.", "Ce n’est pas une sauvegarde de l’ancienne application.": "This is not a backup of the old application.",
+  "Langue": "Language", "Couleurs": "Colors", "Couleurs personnalisées": "Custom colors", "Couleur principale": "Main color", "Couleur d’accent": "Accent color",
+  "Appliquer": "Apply", "Réinitialiser": "Reset", "Ces réglages sont enregistrés sur cet appareil.": "These settings are saved on this device.",
+  "Vert Stayora": "Stayora green", "Vert pétrole": "Deep teal", "Vert sauge": "Sage green", "Bleu océan": "Ocean blue", "Prune": "Plum", "Terre cuite": "Terracotta", "Graphite": "Graphite",
+  "Chargement…": "Loading…", "Externe": "External", "Fond de page": "Page background", "Blanc": "White", "Crème": "Cream", "Gris clair": "Light gray"
+};
+const FRAG = [["Confirmée", "Confirmed"], ["En attente", "Pending"], ["Annulée", "Cancelled"], ["Arrivé", "Checked in"], ["Parti", "Checked out"], ["Réservé en chambre", "Booked in room"], ["Prix par nuit", "Price per night"], ["Prix/nuit", "Price/night"], ["Encaissé ce mois :", "Collected this month:"], ["Soldes dus :", "Balances due:"],
+  ["Reste à payer :", "Balance due:"], ["Ce mois :", "This month:"], ["d’occupation", "occupancy"], ["séjour(s)", "stay(s)"], ["nuit(s)", "night(s)"], ["importée(s).", "imported."], ["réservation(s)", "reservation(s)"],
+  ["Ignorées", "Skipped"], ["Paiements ·", "Payments ·"], ["Remboursement", "Refund"], ["Paiement", "Payment"], ["Acompte", "Deposit"], ["Espèces", "Cash"], ["Virement", "Transfer"], ["Carte", "Card"],
+  ["Soldé", "Settled"], ["Solde", "Balance"], ["Payé", "Paid"], ["Facture ", "Invoice "], ["Importé", "Imported"], ["Erreur :", "Error:"], [" ch. ", " rm. "]];
+function tr(s) {
+  if (LANG === "fr" || !s) return s;
+  const t = String(s).trim(); if (!t) return s;
+  if (EN[t] !== undefined) return String(s).replace(t, EN[t]);
+  let o = String(s); for (const [a, b] of FRAG) o = o.split(a).join(b); return o;
+}
+function translateDom(root) {
+  if (LANG === "fr" || !root) return;
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let n;
+  while ((n = w.nextNode())) { if (/^(TEXTAREA|SCRIPT|STYLE)$/.test(n.parentNode.nodeName)) continue; const v = tr(n.nodeValue); if (v !== n.nodeValue) n.nodeValue = v; }
+  root.querySelectorAll("[placeholder]").forEach(e => e.placeholder = tr(e.placeholder));
+}
+function setView() {
+  const cur = curTheme(), c = themeVars(), c0 = c["--bg"];
+  const sw = Object.entries(THEMES).map(([k, t]) => `<button class="sw ${cur === k ? "on" : ""}" onclick="setTheme('${k}')"><span style="background:${t.teal}"></span><span style="background:${t.gold}"></span><span style="background:${t.bg};border:1px solid #bbb"></span>${esc(t.n)}</button>`).join("");
+  return `<div class="card"><h3>Langue</h3><button class="${LANG === "fr" ? "p" : ""}" onclick="setLang('fr')">Français</button> <button class="${LANG === "en" ? "p" : ""}" onclick="setLang('en')">English</button></div>
+  <div class="card"><h3>Couleurs</h3><div class="swg">${sw}</div><h4>Fond de page</h4><p>${[["#ffffff", "Blanc"], ["#f4f3ec", "Crème"], ["#f1f3f4", "Gris clair"]].map(([c, n]) => `<button class="${c === c0 ? "p" : ""}" onclick="setBg('${c}')">${n}</button>`).join(" ")}</p><h4>Couleurs personnalisées</h4>
+  <label>Couleur principale<input type="color" id="cMain" value="${esc(c["--teal"])}"></label><label>Couleur d’accent<input type="color" id="cAcc" value="${esc(c["--gold"])}"></label>
+  <p><button class="p" onclick="setCustom()">Appliquer</button> <button onclick="setTheme('stayora')">Réinitialiser</button></p><small>Ces réglages sont enregistrés sur cet appareil.</small></div>`;
+}
 const S = { tab: "cal", off: 0, mo: 0, sm: 0, pays: [], pay: null };
 const KIND = { payment: "Paiement", deposit: "Acompte", refund: "Remboursement" }, MET = { cash: "Espèces", card: "Carte", transfer: "Virement", other: "Autre" };
 const ST = { pending:"En attente", confirmed:"Confirmée", checked_in:"Arrivé", checked_out:"Parti", cancelled:"Annulée", no_show:"No-show" };
 const RS = { available:"Disponible", occupied:"Occupée", to_clean:"À nettoyer", cleaning:"En nettoyage", out_of_service:"Hors service", maintenance:"Maintenance" };
 const today = () => { try { return new Intl.DateTimeFormat("en-CA", { timeZone: S.prop.timezone }).format(new Date()); } catch (e) { return new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10); } };
 const addDays = (d, n) => { const x = new Date(d + "T00:00:00Z"); x.setUTCDate(x.getUTCDate() + n); return x.toISOString().slice(0, 10); };
-const toast = (m, err) => { const t = $("#toast"); t.textContent = m; t.className = "show" + (err ? " err" : ""); setTimeout(() => t.className = "", 4000); };
-const view = h => $("#app").innerHTML = h;
+const toast = (m, err) => { const t = $("#toast"); t.textContent = tr(m); t.className = "show" + (err ? " err" : ""); setTimeout(() => t.className = "", 4000); };
+const view = h => { $("#app").innerHTML = h; translateDom($("#app")); };
 
 async function init() {
+  applyTheme(); document.documentElement.lang = LANG;
   const { data: { session } } = await sb.auth.getSession();
   if (!session) return authView();
   S.user = session.user;
@@ -72,7 +160,7 @@ async function init() {
 function authView() {
   view(`<div class="auth card"><h2 class="brand">STAYORA</h2><p>Less complexity. More hospitality.</p>
   <input id="em" type="email" placeholder="E-mail"><input id="pw" type="password" placeholder="Mot de passe (8 caractères min.)">
-  <button class="p" onclick="auth(true)">Se connecter</button> <button onclick="auth(false)">Créer un compte</button></div>`);
+  <button class="p" onclick="auth(true)">Se connecter</button> <button onclick="auth(false)">Créer un compte</button><p><button class="s" onclick="setLang('fr')">Français</button> <button class="s" onclick="setLang('en')">English</button></p></div>`);
 }
 async function auth(login) {
   const c = { email: $("#em").value.trim(), password: $("#pw").value };
@@ -105,7 +193,7 @@ async function load() {
   S.rooms = r.data || []; S.rr = rr.data || []; S.res = rs.data || []; S.guests = g.data || []; S.pays = py.data || [];
 }
 const refresh = async () => { await load(); appView(); };
-const fmt = n => Number(n || 0).toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " " + S.prop.currency;
+const fmt = n => Number(n || 0).toLocaleString(LOC(), { maximumFractionDigits: 2 }) + " " + S.prop.currency;
 const paidOf = id => (S.pays || []).filter(p => p.reservation_id === id).reduce((u, p) => u + (p.kind === "refund" ? -1 : 1) * Number(p.amount), 0);
 function moneyLine(r) { const t = Number(r.total_amount || 0), p = paidOf(r.id); if (!t && !p) return ""; const b = t - p; return `<br>Total ${esc(fmt(t))} · Payé ${esc(fmt(p))} · <b style="color:${b > 0 ? "#9b2c2c" : "#2f6b4f"}">${b > 0 ? "Solde " + esc(fmt(b)) : "Soldé"}</b>`; }
 const resOf = id => S.res.find(x => x.id === id) || {};
@@ -117,20 +205,20 @@ function appView() {
   const arr = live.filter(x => x.check_in === t && ["pending", "confirmed"].includes(resOf(x.reservation_id).status)).length;
   const dep = live.filter(x => x.check_out === t && resOf(x.reservation_id).status === "checked_in").length;
   const n = S.rooms.length, clean = S.rooms.filter(x => x.status === "to_clean").length;
-  const tabs = S.role === "housekeeping" ? [["rooms", "Chambres"]] : [["cal", "Calendrier"], ["res", "Réservations"], ["sum", "Résumé"], ["rooms", "Chambres"]];
+  const tabs = S.role === "housekeeping" ? [["rooms", "Chambres"], ["set", "Réglages"]] : [["cal", "Calendrier"], ["res", "Réservations"], ["sum", "Résumé"], ["rooms", "Chambres"], ["set", "Réglages"]];
   view(`<header><div><span class="brand">STAYORA</span> <small>${esc(S.prop.name)}</small></div><button class="s" onclick="signOut()">Déconnexion</button></header>
   <main><div class="card stats">
    <div class="stat"><b>${n ? Math.round(occ / n * 100) : 0} %</b>Occupation</div><div class="stat"><b>${arr}</b>Arrivées</div>
    <div class="stat"><b>${dep}</b>Départs</div><div class="stat"><b>${n - occ}</b>Libres</div><div class="stat"><b>${clean}</b>À nettoyer</div></div>
   ${todayCard()}<nav>${tabs.map(([k, l]) => `<button class="t ${S.tab === k ? "on" : ""}" onclick="S.tab='${k}';appView()">${l}</button>`).join("")}</nav>
-  ${S.tab === "cal" ? calView() : S.tab === "res" ? resView() : S.tab === "sum" ? sumView() : roomsView()}</main>`);
+  ${S.tab === "cal" ? calView() : S.tab === "res" ? resView() : S.tab === "sum" ? sumView() : S.tab === "set" ? setView() : roomsView()}</main>`);
 }
 
 function calView() {
   const t = today(), base = new Date(+t.slice(0, 4), +t.slice(5, 7) - 1 + S.mo, 1);
   const y = base.getFullYear(), m = base.getMonth(), dim = new Date(y, m + 1, 0).getDate(), lead = (base.getDay() + 6) % 7;
   const ds = d => y + "-" + String(m + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
-  const title = base.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  const title = base.toLocaleDateString(LOC(), { month: "long", year: "numeric" });
   const live = S.rr.filter(x => x.is_blocking); let total = 0;
   const cards = S.rooms.map(r => {
     let cells = "<i></i>".repeat(lead), n = 0;
@@ -140,7 +228,7 @@ function calView() {
       cells += `<b class="d ${x ? "on" : ""} ${k === t ? "td" : ""}" onclick="dayTap('${r.id}','${k}')">${d}</b>`;
     }
     total += n;
-    return `<div class="rc"><div class="mg">${"LMMJVSD".split("").map(c => `<span class="h">${c}</span>`).join("")}${cells}</div><h4>${esc(r.number)}${r.name ? " · " + esc(r.name) : ""}</h4><small>${n} nuit(s)</small></div>`;
+    return `<div class="rc"><div class="mg">${(LANG === "en" ? "MTWTFSS" : "LMMJVSD").split("").map(c => `<span class="h">${c}</span>`).join("")}${cells}</div><h4>${esc(r.number)}${r.name ? " · " + esc(r.name) : ""}</h4><small>${n} nuit(s)</small></div>`;
   }).join("");
   const occ = S.rooms.length ? Math.round(total / (S.rooms.length * dim) * 100) : 0;
   return `<div class="card"><div class="nav2"><button onclick="S.mo--;appView()">‹</button><b style="text-transform:capitalize">${esc(title)}</b><button onclick="S.mo++;appView()">›</button></div>
@@ -160,7 +248,7 @@ function todayCard() {
 function sumView() {
   const t = today(), b = new Date(+t.slice(0, 4), +t.slice(5, 7) - 1 + S.sm, 1), y = b.getFullYear(), m = b.getMonth(), dim = new Date(y, m + 1, 0).getDate();
   const a = y + "-" + String(m + 1).padStart(2, "0") + "-01", z = new Date(Date.UTC(y, m + 1, 1)).toISOString().slice(0, 10);
-  const day = s => Date.parse(s + "T00:00:00Z") / 864e5, title = b.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  const day = s => Date.parse(s + "T00:00:00Z") / 864e5, title = b.toLocaleDateString(LOC(), { month: "long", year: "numeric" });
   const rows = S.rr.filter(x => x.is_blocking && x.check_in < z && x.check_out > a).sort((p, q) => p.check_in.localeCompare(q.check_in))
     .map(x => { const lo = x.check_in > a ? x.check_in : a, hi = x.check_out < z ? x.check_out : z, n = day(hi) - day(lo), rm = S.rooms.find(y => y.id === x.room_id); return { x, n, rm }; });
   const mp = (S.pays || []).filter(p => String(p.paid_at).slice(0, 7) === a.slice(0, 7)).reduce((u, p) => u + (p.kind === "refund" ? -1 : 1) * Number(p.amount), 0);
@@ -175,14 +263,23 @@ function sumView() {
 function payRes(id) { S.pay = id; S.edit = null; S.tab = "res"; appView(); window.scrollTo(0, 0); }
 function payView(id) {
   const r = resOf(id), tot = Number(r.total_amount || 0), paid = paidOf(id), bal = tot - paid;
+  const x = S.rr.find(y => y.reservation_id === id) || {}, nights = x.check_in ? (Date.parse(x.check_out + "T00:00:00Z") - Date.parse(x.check_in + "T00:00:00Z")) / 864e5 : 0;
+  const totForm = `<form class="g" onsubmit="saveTotal(event)" style="margin:10px 0"><input name="night" type="number" min="0" step="any" placeholder="Prix par nuit (${nights} nuit(s))" oninput="this.form.total.value=Math.round(this.value*${nights}*100)/100"><input name="total" type="number" min="0" step="any" value="${tot || ""}" placeholder="Total du séjour" required><button class="p">Enregistrer le total</button></form>`;
   const hist = (S.pays || []).filter(p => p.reservation_id === id).sort((a, b) => a.paid_at.localeCompare(b.paid_at))
     .map(p => `<div class="row"><div>${esc(p.paid_at.slice(0, 10))} · ${esc(KIND[p.kind])} · ${esc(MET[p.method])}${p.note ? " · " + esc(p.note) : ""}</div><b>${p.kind === "refund" ? "−" : ""}${esc(fmt(p.amount))}</b></div>`).join("") || "<p>Aucun paiement enregistré.</p>";
-  return `<div class="card"><h3>Paiements · ${esc(guestName(id))}</h3><p>Total ${esc(fmt(tot))} · Payé ${esc(fmt(paid))} · <b>Solde ${esc(fmt(bal))}</b></p>${hist}
+  return `<div class="card"><h3>Paiements · ${esc(guestName(id))}</h3><p>Total ${esc(fmt(tot))} · Payé ${esc(fmt(paid))} · <b>Solde ${esc(fmt(bal))}</b></p>${totForm}${hist}
   <form class="g" onsubmit="savePay(event)" style="margin-top:10px"><input name="amount" type="number" min="0.01" step="any" value="${bal > 0 ? bal : ""}" placeholder="Montant reçu" required>
   <select name="kind"><option value="payment">Paiement</option><option value="deposit">Acompte</option><option value="refund">Remboursement</option></select>
   <select name="method"><option value="cash">Espèces</option><option value="card">Carte bancaire</option><option value="transfer">Virement</option><option value="other">Autre</option></select>
   <input name="note" placeholder="Note (facultatif)"><button class="p">Enregistrer le paiement</button><button type="button" onclick="S.pay=null;appView()">Fermer</button></form>
   <small>N’enregistrez un paiement qu’après l’avoir réellement reçu.</small></div>`;
+}
+async function saveTotal(e) {
+  e.preventDefault(); const t = +new FormData(e.target).get("total");
+  if (!(t >= 0)) return toast("Montant invalide.", 1);
+  const r = await sb.from("reservations").update({ total_amount: t }).eq("id", S.pay);
+  if (r.error) return toast(r.error.message, 1);
+  toast("Total enregistré."); refresh();
 }
 async function savePay(e) {
   e.preventDefault(); const f = new FormData(e.target), amount = +f.get("amount");
@@ -204,6 +301,7 @@ function invoice(id) {
   <table style="width:100%"><tr><td>Hébergement</td><td style="text-align:right"><b>${esc(fmt(tot))}</b></td></tr></table>
   <h4>Paiements reçus</h4><table style="width:100%">${pays || "<tr><td>Aucun paiement</td></tr>"}</table>
   <p style="text-align:right;font-size:17px"><b>Reste à payer : ${esc(fmt(tot - paid))}</b></p></div>`);
+  translateDom($("#inv"));
 }
 function dayTap(room, k) {
   const x = S.rr.find(z => z.room_id === room && z.is_blocking && z.check_in <= k && k < z.check_out);
@@ -227,7 +325,7 @@ function resView() {
   return `<div class="card"><h3>Nouvelle réservation</h3><form class="g" onsubmit="createRes(event)">
   <input name="fn" placeholder="Prénom" required><input name="ln" placeholder="Nom" required><input name="em" type="email" placeholder="E-mail"><input name="ph" placeholder="Téléphone">
   <select name="room" required>${opts}</select><input name="ci" type="date" value="${pre.ci || ""}" required><input name="co" type="date" required>
-  <input name="ad" type="number" min="1" value="1"><input name="total" type="number" min="0" step="any" placeholder="Total (${esc(S.prop.currency)})"><select name="src"><option value="direct">Direct</option><option>Téléphone</option><option>Booking.com</option><option>Airbnb</option><option>Autre</option></select>
+  <input name="ad" type="number" min="1" value="1"><input name="total" type="number" min="0" step="any" placeholder="Total (${esc(S.prop.currency)})"><select name="src"><option value="direct">Direct</option><option value="Téléphone">Téléphone</option><option>Booking.com</option><option>Airbnb</option><option value="Autre">Autre</option></select>
   <button class="p">Réserver</button></form></div>
   <div class="card"><h3>Placer un client automatiquement</h3><p>Choisit la première chambre libre sur ces dates.</p><form class="g" onsubmit="autoPlace(event)"><input name="fn" placeholder="Prénom" required><input name="ln" placeholder="Nom" required><input name="ci" type="date" required><input name="co" type="date" required><input name="ad" type="number" min="1" value="1"><button class="p">Placer</button></form></div>${listCard}`;
 }
@@ -334,7 +432,7 @@ async function doImport() {
     ok++;
   }
   await refresh();
-  alert(ok + " réservation(s) importée(s)." + (skip.length ? "\n\nIgnorées (" + skip.length + ") :\n" + skip.join("\n") : ""));
+  alert(tr(ok + " réservation(s) importée(s)." + (skip.length ? "\n\nIgnorées (" + skip.length + ") :\n" + skip.join("\n") : "")));
 }
 async function addRoom(e) {
   e.preventDefault(); const f = new FormData(e.target);
