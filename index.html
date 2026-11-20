@@ -26,6 +26,8 @@ td.occ{background:var(--teal);color:#fff}td.tod,th.tod{background:#f1e6cc}
 .mg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px}.mg .h{color:#8a8f87;font-size:11px}
 .d{padding:5px 0;border-radius:6px;cursor:pointer;font-weight:500}.d.on{background:var(--gold);color:#fff}.d.td{outline:2px solid var(--teal)}
 .nav2{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.sum{margin:6px 0}
+@media print{header,nav,.stats,button,#toast{display:none!important}body{background:#fff}}
+@media print{body.pinv>*:not(#inv){display:none!important}#inv{position:static!important}#inv .noprint{display:none!important}}
 </style></head><body>
 <div id="app"><p style="padding:24px">Chargement…</p></div><div id="toast"></div>
 <script>
@@ -44,7 +46,8 @@ const SUPABASE_KEY = "sb_publishable_TlXBx7O2gPUNtNYTG0qoKw_EGo3a57Y";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = s => document.querySelector(s);
 const esc = t => String(t ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const S = { tab: "cal", off: 0, mo: 0 };
+const S = { tab: "cal", off: 0, mo: 0, sm: 0, pays: [], pay: null };
+const KIND = { payment: "Paiement", deposit: "Acompte", refund: "Remboursement" }, MET = { cash: "Espèces", card: "Carte", transfer: "Virement", other: "Autre" };
 const ST = { pending:"En attente", confirmed:"Confirmée", checked_in:"Arrivé", checked_out:"Parti", cancelled:"Annulée", no_show:"No-show" };
 const RS = { available:"Disponible", occupied:"Occupée", to_clean:"À nettoyer", cleaning:"En nettoyage", out_of_service:"Hors service", maintenance:"Maintenance" };
 const today = () => { try { return new Intl.DateTimeFormat("en-CA", { timeZone: S.prop.timezone }).format(new Date()); } catch (e) { return new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10); } };
@@ -98,10 +101,13 @@ async function onboard(e, hasOrg) {
 
 async function load() {
   const p = S.prop.id, q = t => sb.from(t).select("*").eq("property_id", p);
-  const [r, rr, rs, g] = await Promise.all([q("rooms").order("number"), q("reservation_rooms"), q("reservations").order("created_at", { ascending: false }), q("guests")]);
-  S.rooms = r.data || []; S.rr = rr.data || []; S.res = rs.data || []; S.guests = g.data || [];
+  const [r, rr, rs, g, py] = await Promise.all([q("rooms").order("number"), q("reservation_rooms"), q("reservations").order("created_at", { ascending: false }), q("guests"), q("payments")]);
+  S.rooms = r.data || []; S.rr = rr.data || []; S.res = rs.data || []; S.guests = g.data || []; S.pays = py.data || [];
 }
 const refresh = async () => { await load(); appView(); };
+const fmt = n => Number(n || 0).toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " " + S.prop.currency;
+const paidOf = id => (S.pays || []).filter(p => p.reservation_id === id).reduce((u, p) => u + (p.kind === "refund" ? -1 : 1) * Number(p.amount), 0);
+function moneyLine(r) { const t = Number(r.total_amount || 0), p = paidOf(r.id); if (!t && !p) return ""; const b = t - p; return `<br>Total ${esc(fmt(t))} · Payé ${esc(fmt(p))} · <b style="color:${b > 0 ? "#9b2c2c" : "#2f6b4f"}">${b > 0 ? "Solde " + esc(fmt(b)) : "Soldé"}</b>`; }
 const resOf = id => S.res.find(x => x.id === id) || {};
 const guestName = rid => { const g = S.guests.find(x => x.id === resOf(rid).guest_id); return g ? `${g.first_name} ${g.last_name}` : "Externe"; };
 
@@ -111,13 +117,13 @@ function appView() {
   const arr = live.filter(x => x.check_in === t && ["pending", "confirmed"].includes(resOf(x.reservation_id).status)).length;
   const dep = live.filter(x => x.check_out === t && resOf(x.reservation_id).status === "checked_in").length;
   const n = S.rooms.length, clean = S.rooms.filter(x => x.status === "to_clean").length;
-  const tabs = S.role === "housekeeping" ? [["rooms", "Chambres"]] : [["cal", "Calendrier"], ["res", "Réservations"], ["rooms", "Chambres"]];
+  const tabs = S.role === "housekeeping" ? [["rooms", "Chambres"]] : [["cal", "Calendrier"], ["res", "Réservations"], ["sum", "Résumé"], ["rooms", "Chambres"]];
   view(`<header><div><span class="brand">STAYORA</span> <small>${esc(S.prop.name)}</small></div><button class="s" onclick="signOut()">Déconnexion</button></header>
   <main><div class="card stats">
    <div class="stat"><b>${n ? Math.round(occ / n * 100) : 0} %</b>Occupation</div><div class="stat"><b>${arr}</b>Arrivées</div>
    <div class="stat"><b>${dep}</b>Départs</div><div class="stat"><b>${n - occ}</b>Libres</div><div class="stat"><b>${clean}</b>À nettoyer</div></div>
-  <nav>${tabs.map(([k, l]) => `<button class="t ${S.tab === k ? "on" : ""}" onclick="S.tab='${k}';appView()">${l}</button>`).join("")}</nav>
-  ${S.tab === "cal" ? calView() : S.tab === "res" ? resView() : roomsView()}</main>`);
+  ${todayCard()}<nav>${tabs.map(([k, l]) => `<button class="t ${S.tab === k ? "on" : ""}" onclick="S.tab='${k}';appView()">${l}</button>`).join("")}</nav>
+  ${S.tab === "cal" ? calView() : S.tab === "res" ? resView() : S.tab === "sum" ? sumView() : roomsView()}</main>`);
 }
 
 function calView() {
@@ -139,12 +145,69 @@ function calView() {
   const occ = S.rooms.length ? Math.round(total / (S.rooms.length * dim) * 100) : 0;
   return `<div class="card"><div class="nav2"><button onclick="S.mo--;appView()">‹</button><b style="text-transform:capitalize">${esc(title)}</b><button onclick="S.mo++;appView()">›</button></div>
   <p class="sum">Ce mois : <b>${occ} % d’occupation</b> · ${total} nuit(s) · <button class="s" onclick="S.mo=0;appView()">Aujourd’hui</button></p>
-  <small>Touchez un jour occupé pour voir le client, un jour libre pour réserver.</small></div>
+  <small>Touchez un jour occupé pour modifier la réservation, un jour libre pour réserver.</small></div>
   <div class="rg">${cards || "<div class='card'>Ajoutez d’abord des chambres.</div>"}</div>`;
+}
+function todayCard() {
+  if (S.role === "housekeeping") return "";
+  const t = today(), live = S.rr.filter(x => x.is_blocking);
+  const row = (x, st, l) => { const rm = S.rooms.find(y => y.id === x.room_id); return `<div class="row"><div><b>${esc(guestName(x.reservation_id))}</b> · ch. ${esc(rm?.number)}</div><button class="s" onclick="setStatus('${x.reservation_id}','${st}')">${l}</button></div>`; };
+  const arr = live.filter(x => x.check_in === t && ["pending", "confirmed"].includes(resOf(x.reservation_id).status)).map(x => row(x, "checked_in", "Check-in")).join("");
+  const dep = live.filter(x => x.check_out === t && resOf(x.reservation_id).status === "checked_in").map(x => row(x, "checked_out", "Check-out")).join("");
+  if (!arr && !dep) return "";
+  return `<div class="card">${arr ? "<b>Arrivées aujourd’hui</b>" + arr : ""}${dep ? "<b>Départs aujourd’hui</b>" + dep : ""}</div>`;
+}
+function sumView() {
+  const t = today(), b = new Date(+t.slice(0, 4), +t.slice(5, 7) - 1 + S.sm, 1), y = b.getFullYear(), m = b.getMonth(), dim = new Date(y, m + 1, 0).getDate();
+  const a = y + "-" + String(m + 1).padStart(2, "0") + "-01", z = new Date(Date.UTC(y, m + 1, 1)).toISOString().slice(0, 10);
+  const day = s => Date.parse(s + "T00:00:00Z") / 864e5, title = b.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  const rows = S.rr.filter(x => x.is_blocking && x.check_in < z && x.check_out > a).sort((p, q) => p.check_in.localeCompare(q.check_in))
+    .map(x => { const lo = x.check_in > a ? x.check_in : a, hi = x.check_out < z ? x.check_out : z, n = day(hi) - day(lo), rm = S.rooms.find(y => y.id === x.room_id); return { x, n, rm }; });
+  const mp = (S.pays || []).filter(p => String(p.paid_at).slice(0, 7) === a.slice(0, 7)).reduce((u, p) => u + (p.kind === "refund" ? -1 : 1) * Number(p.amount), 0);
+  const due = rows.reduce((u, { x }) => u + Math.max(0, Number(resOf(x.reservation_id).total_amount || 0) - paidOf(x.reservation_id)), 0);
+  const total = rows.reduce((u, r) => u + r.n, 0), occ = S.rooms.length ? Math.round(total / (S.rooms.length * dim) * 100) : 0;
+  const tr = rows.map(({ x, n, rm }) => `<tr><td style="text-align:left">${esc(guestName(x.reservation_id))}</td><td>${esc(rm?.number)}</td><td>${esc(x.check_in)} → ${esc(x.check_out)}</td><td>${n}</td><td>${esc(fmt(resOf(x.reservation_id).total_amount))}</td><td>${esc(fmt(Number(resOf(x.reservation_id).total_amount || 0) - paidOf(x.reservation_id)))}</td><td style="text-align:left;white-space:normal">${esc(resOf(x.reservation_id).notes || "")}</td></tr>`).join("");
+  return `<div class="card"><div class="nav2"><button onclick="S.sm--;appView()">‹</button><b style="text-transform:capitalize">${esc(title)}</b><button onclick="S.sm++;appView()">›</button></div>
+  <p class="sum"><b>${rows.length}</b> séjour(s) · <b>${total}</b> nuit(s) · <b>${occ} %</b> d’occupation · Encaissé ce mois : <b>${esc(fmt(mp))}</b> · Soldes dus : <b>${esc(fmt(due))}</b></p>
+  <button class="p" onclick="window.print()">Imprimer / PDF</button>
+  <div class="scroll" style="margin-top:8px"><table><tr><th>Client</th><th>Ch.</th><th>Séjour</th><th>Nuits</th><th>Total</th><th>Solde</th><th>Notes</th></tr>${tr || "<tr><td colspan=7>Aucun séjour ce mois-ci.</td></tr>"}</table></div></div>`;
+}
+function payRes(id) { S.pay = id; S.edit = null; S.tab = "res"; appView(); window.scrollTo(0, 0); }
+function payView(id) {
+  const r = resOf(id), tot = Number(r.total_amount || 0), paid = paidOf(id), bal = tot - paid;
+  const hist = (S.pays || []).filter(p => p.reservation_id === id).sort((a, b) => a.paid_at.localeCompare(b.paid_at))
+    .map(p => `<div class="row"><div>${esc(p.paid_at.slice(0, 10))} · ${esc(KIND[p.kind])} · ${esc(MET[p.method])}${p.note ? " · " + esc(p.note) : ""}</div><b>${p.kind === "refund" ? "−" : ""}${esc(fmt(p.amount))}</b></div>`).join("") || "<p>Aucun paiement enregistré.</p>";
+  return `<div class="card"><h3>Paiements · ${esc(guestName(id))}</h3><p>Total ${esc(fmt(tot))} · Payé ${esc(fmt(paid))} · <b>Solde ${esc(fmt(bal))}</b></p>${hist}
+  <form class="g" onsubmit="savePay(event)" style="margin-top:10px"><input name="amount" type="number" min="0.01" step="any" value="${bal > 0 ? bal : ""}" placeholder="Montant reçu" required>
+  <select name="kind"><option value="payment">Paiement</option><option value="deposit">Acompte</option><option value="refund">Remboursement</option></select>
+  <select name="method"><option value="cash">Espèces</option><option value="card">Carte bancaire</option><option value="transfer">Virement</option><option value="other">Autre</option></select>
+  <input name="note" placeholder="Note (facultatif)"><button class="p">Enregistrer le paiement</button><button type="button" onclick="S.pay=null;appView()">Fermer</button></form>
+  <small>N’enregistrez un paiement qu’après l’avoir réellement reçu.</small></div>`;
+}
+async function savePay(e) {
+  e.preventDefault(); const f = new FormData(e.target), amount = +f.get("amount");
+  if (!(amount > 0)) return toast("Montant invalide.", 1);
+  const r = await sb.from("payments").insert({ organization_id: S.orgId, property_id: S.prop.id, reservation_id: S.pay, amount, kind: f.get("kind"), method: f.get("method"), note: f.get("note") || null, created_by: S.user.id });
+  if (r.error) return toast(/payments/.test(r.error.message) ? "La table des paiements n’existe pas encore : étape Supabase à faire." : r.error.message, 1);
+  toast("Paiement enregistré."); refresh();
+}
+function invoice(id) {
+  const r = resOf(id), x = S.rr.find(y => y.reservation_id === id) || {}, rm = S.rooms.find(y => y.id === x.room_id), g = S.guests.find(y => y.id === r.guest_id);
+  const d = s => Date.parse(s + "T00:00:00Z") / 864e5, n = d(x.check_out) - d(x.check_in), tot = Number(r.total_amount || 0), paid = paidOf(id);
+  const pays = (S.pays || []).filter(p => p.reservation_id === id).sort((a, b) => a.paid_at.localeCompare(b.paid_at))
+    .map(p => `<tr><td>${esc(p.paid_at.slice(0, 10))}</td><td>${esc(KIND[p.kind])} · ${esc(MET[p.method])}</td><td style="text-align:right">${p.kind === "refund" ? "−" : ""}${esc(fmt(p.amount))}</td></tr>`).join("");
+  const num = "F-" + String(x.check_in).replace(/-/g, "") + "-" + id.slice(0, 4).toUpperCase();
+  document.body.classList.add("pinv");
+  document.body.insertAdjacentHTML("beforeend", `<div id="inv" style="position:fixed;inset:0;background:#fff;overflow:auto;padding:20px;z-index:50;font:15px system-ui"><div class="noprint"><button class="p" onclick="window.print()">Imprimer / PDF</button> <button onclick="document.getElementById('inv').remove();document.body.classList.remove('pinv')">Fermer</button></div>
+  <h2 style="margin:16px 0 0">${esc(S.prop.name)}</h2><p>Facture ${esc(num)} · ${esc(today())}</p>
+  <p><b>Client :</b> ${esc(g ? g.first_name + " " + g.last_name : "—")}<br><b>Chambre :</b> ${esc(rm?.number)}<br><b>Séjour :</b> ${esc(x.check_in)} → ${esc(x.check_out)} (${n} nuit(s))</p>
+  <table style="width:100%"><tr><td>Hébergement</td><td style="text-align:right"><b>${esc(fmt(tot))}</b></td></tr></table>
+  <h4>Paiements reçus</h4><table style="width:100%">${pays || "<tr><td>Aucun paiement</td></tr>"}</table>
+  <p style="text-align:right;font-size:17px"><b>Reste à payer : ${esc(fmt(tot - paid))}</b></p></div>`);
 }
 function dayTap(room, k) {
   const x = S.rr.find(z => z.room_id === room && z.is_blocking && z.check_in <= k && k < z.check_out);
-  if (x) return toast(guestName(x.reservation_id) + " · " + x.check_in + " → " + x.check_out);
+  if (x) { if (S.role === "housekeeping") return toast(guestName(x.reservation_id) + " · " + x.check_in + " → " + x.check_out); return editRes(x.reservation_id); }
   if (S.role === "housekeeping") return;
   S.pre = { room, ci: k }; S.tab = "res"; appView();
 }
@@ -155,29 +218,73 @@ function resView() {
   const list = S.res.map(r => {
     const x = S.rr.find(y => y.reservation_id === r.id) || {}, room = S.rooms.find(y => y.id === x.room_id);
     const b = (st, l) => `<button class="s" onclick="setStatus('${r.id}','${st}')">${l}</button>`;
-    return `<div class="row"><div><b>${esc(guestName(r.id))}</b> · ch. ${esc(room?.number)}<br>${esc(x.check_in)} → ${esc(x.check_out)} · ${esc(ST[r.status])} · ${esc(r.source)}</div>
-    <div>${r.status === "confirmed" ? b("checked_in", "Check-in") : ""}${r.status === "checked_in" ? b("checked_out", "Check-out") : ""}${["pending", "confirmed"].includes(r.status) ? b("cancelled", "Annuler") : ""}</div></div>`;
+    return `<div class="row" data-s="${esc((guestName(r.id) + " " + (room?.number || "") + " " + r.source + " " + (r.notes || "")).toLowerCase())}"><div><b>${esc(guestName(r.id))}</b> · ch. ${esc(room?.number)}<br>${esc(x.check_in)} → ${esc(x.check_out)} · ${esc(ST[r.status])} · ${esc(r.source)}${moneyLine(r)}</div>
+    <div>${r.status !== "cancelled" ? `<button class="s" onclick="editRes('${r.id}')">Modifier</button>` : ""}<button class="s" onclick="payRes('${r.id}')">Paiement</button><button class="s" onclick="invoice('${r.id}')">Facture</button>${r.status === "confirmed" ? b("checked_in", "Check-in") : ""}${r.status === "checked_in" ? b("checked_out", "Check-out") : ""}${["pending", "confirmed"].includes(r.status) ? b("cancelled", "Annuler") : ""}</div></div>`;
   }).join("") || "<p>Aucune réservation.</p>";
+  const listCard = `<div class="card"><input placeholder="Rechercher un client, une chambre…" oninput="filterRows(this.value)" style="width:100%;margin-bottom:6px"><div id="rl">${list}</div></div>`;
+  if (S.pay) return payView(S.pay) + listCard;
+  if (S.edit) return editView(S.edit) + listCard;
   return `<div class="card"><h3>Nouvelle réservation</h3><form class="g" onsubmit="createRes(event)">
   <input name="fn" placeholder="Prénom" required><input name="ln" placeholder="Nom" required><input name="em" type="email" placeholder="E-mail"><input name="ph" placeholder="Téléphone">
   <select name="room" required>${opts}</select><input name="ci" type="date" value="${pre.ci || ""}" required><input name="co" type="date" required>
-  <input name="ad" type="number" min="1" value="1"><select name="src"><option value="direct">Direct</option><option>Téléphone</option><option>Booking.com</option><option>Airbnb</option><option>Autre</option></select>
-  <button class="p">Réserver</button></form></div><div class="card">${list}</div>`;
+  <input name="ad" type="number" min="1" value="1"><input name="total" type="number" min="0" step="any" placeholder="Total (${esc(S.prop.currency)})"><select name="src"><option value="direct">Direct</option><option>Téléphone</option><option>Booking.com</option><option>Airbnb</option><option>Autre</option></select>
+  <button class="p">Réserver</button></form></div>
+  <div class="card"><h3>Placer un client automatiquement</h3><p>Choisit la première chambre libre sur ces dates.</p><form class="g" onsubmit="autoPlace(event)"><input name="fn" placeholder="Prénom" required><input name="ln" placeholder="Nom" required><input name="ci" type="date" required><input name="co" type="date" required><input name="ad" type="number" min="1" value="1"><button class="p">Placer</button></form></div>${listCard}`;
 }
-async function createRes(e) {
-  e.preventDefault(); const f = new FormData(e.target), o = S.orgId, p = S.prop.id, ci = f.get("ci"), co = f.get("co");
+function editRes(id) { S.edit = id; S.tab = "res"; appView(); window.scrollTo(0, 0); }
+function editView(id) {
+  const r = resOf(id), x = S.rr.find(y => y.reservation_id === id) || {}, g = S.guests.find(y => y.id === r.guest_id);
+  const opts = S.rooms.map(o => `<option value="${o.id}" ${o.id === x.room_id ? "selected" : ""}>${esc(o.number)} ${esc(o.name || "")}</option>`).join("");
+  return `<div class="card"><h3>Modifier la réservation</h3><form class="g" onsubmit="saveEdit(event)">
+  ${g ? `<input name="fn" value="${esc(g.first_name)}" placeholder="Prénom" required><input name="ln" value="${esc(g.last_name)}" placeholder="Nom" required>` : "<p>Blocage externe (sans client)</p>"}
+  <select name="room" required>${opts}</select><input name="ci" type="date" value="${esc(x.check_in)}" required><input name="co" type="date" value="${esc(x.check_out)}" required>
+  <input name="ad" type="number" min="1" value="${esc(r.adults || 1)}"><input name="total" type="number" min="0" step="any" value="${esc(r.total_amount || "")}" placeholder="Total (${esc(S.prop.currency)})"><textarea name="notes" rows="2" placeholder="Notes" style="font:inherit;padding:9px;border-radius:8px;border:1px solid var(--line)">${esc(r.notes || "")}</textarea>
+  <button class="p">Enregistrer</button><button type="button" onclick="S.edit=null;appView()">Fermer</button></form></div>`;
+}
+async function saveEdit(e) {
+  e.preventDefault(); const f = new FormData(e.target), id = S.edit, r = resOf(id), x = S.rr.find(y => y.reservation_id === id);
+  const ci = f.get("ci"), co = f.get("co"), room = f.get("room");
   if (co <= ci) return toast("Le départ doit être après l’arrivée.", 1);
-  const g = await sb.from("guests").insert({ organization_id: o, property_id: p, first_name: f.get("fn"), last_name: f.get("ln"), email: f.get("em") || null, phone: f.get("ph") || null }).select().single();
+  const u = await sb.from("reservation_rooms").update({ room_id: room, check_in: ci, check_out: co }).eq("id", x.id);
+  if (u.error) return toast(u.error.code === "23P01" ? "Cette chambre est déjà réservée sur ces dates. Rien n’a été modifié." : u.error.message, 1);
+  const upd = { adults: Math.max(1, +f.get("ad") || 1), notes: f.get("notes") || null }, tt = +f.get("total") || 0;
+  if (tt !== Number(r.total_amount || 0)) upd.total_amount = tt;
+  const a = await sb.from("reservations").update(upd).eq("id", id);
+  if (a.error) return toast(a.error.message, 1);
+  if (r.guest_id && f.get("fn") !== null) await sb.from("guests").update({ first_name: f.get("fn"), last_name: f.get("ln") }).eq("id", r.guest_id);
+  if (r.status === "checked_in" && room !== x.room_id) {
+    await sb.from("rooms").update({ status: "available" }).eq("id", x.room_id);
+    await sb.from("rooms").update({ status: "occupied" }).eq("id", room);
+  }
+  S.edit = null; toast("Réservation modifiée."); refresh();
+}
+async function book(v) {
+  const o = S.orgId, p = S.prop.id;
+  if (v.co <= v.ci) return toast("Le départ doit être après l’arrivée.", 1);
+  const g = await sb.from("guests").insert({ organization_id: o, property_id: p, first_name: v.fn, last_name: v.ln, email: v.em || null, phone: v.ph || null }).select().single();
   if (g.error) return toast(g.error.message, 1);
-  const r = await sb.from("reservations").insert({ organization_id: o, property_id: p, guest_id: g.data.id, status: "confirmed", source: f.get("src"), adults: +f.get("ad"), created_by: S.user.id }).select().single();
+  const r = await sb.from("reservations").insert({ organization_id: o, property_id: p, guest_id: g.data.id, status: "confirmed", source: v.src, adults: Math.max(1, v.ad || 1), created_by: S.user.id, ...(v.total ? { total_amount: v.total } : {}) }).select().single();
   if (r.error) { await sb.from("guests").delete().eq("id", g.data.id); return toast(r.error.message, 1); }
-  const x = await sb.from("reservation_rooms").insert({ organization_id: o, property_id: p, reservation_id: r.data.id, room_id: f.get("room"), check_in: ci, check_out: co });
+  const x = await sb.from("reservation_rooms").insert({ organization_id: o, property_id: p, reservation_id: r.data.id, room_id: v.room, check_in: v.ci, check_out: v.co });
   if (x.error) {
     await sb.from("reservations").delete().eq("id", r.data.id); await sb.from("guests").delete().eq("id", g.data.id);
     return toast(x.error.code === "23P01" ? "Cette chambre est déjà réservée sur ces dates." : x.error.message, 1);
   }
-  toast("Réservation créée."); refresh();
+  toast(v.msg || "Réservation créée."); refresh();
 }
+function createRes(e) {
+  e.preventDefault(); const f = new FormData(e.target);
+  book({ fn: f.get("fn"), ln: f.get("ln"), em: f.get("em"), ph: f.get("ph"), room: f.get("room"), ci: f.get("ci"), co: f.get("co"), ad: +f.get("ad"), src: f.get("src"), total: +f.get("total") || 0 });
+}
+function autoPlace(e) {
+  e.preventDefault(); const f = new FormData(e.target), ci = f.get("ci"), co = f.get("co");
+  if (co <= ci) return toast("Le départ doit être après l’arrivée.", 1);
+  const free = S.rooms.filter(r => !["out_of_service", "maintenance"].includes(r.status) && !S.rr.some(x => x.room_id === r.id && x.is_blocking && x.check_in < co && ci < x.check_out))
+    .sort((a, b) => String(a.number).localeCompare(String(b.number), undefined, { numeric: true }));
+  if (!free.length) return toast("Aucune chambre libre sur ces dates.", 1);
+  book({ fn: f.get("fn"), ln: f.get("ln"), room: free[0].id, ci, co, ad: +f.get("ad"), src: "direct", msg: "Réservé en chambre " + free[0].number + "." });
+}
+function filterRows(v) { v = v.toLowerCase(); document.querySelectorAll("#rl .row").forEach(r => r.style.display = r.dataset.s.includes(v) ? "" : "none"); }
 async function setStatus(id, st) {
   const r = await sb.from("reservations").update({ status: st }).eq("id", id);
   if (r.error) return toast(r.error.message, 1);
