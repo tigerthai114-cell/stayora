@@ -1,42 +1,47 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Stayora</title>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#01403e"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Stayora"><link rel="apple-touch-icon" href="data:image/png;base64,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">
 <style>
-:root{--teal:#01403e;--teal2:#002b2b;--gold:#e0b55e;--bg:#f4f3ec;--ink:#1d2b2a;--line:#dcd8cc}
+:root{--teal:#01403e;--teal2:#002b2b;--gold:#e0b55e;--bg:#f4f3ec;--ink:#1d2b2a;--line:#dcd8cc;--card:#fff;--acc:#01403e;--pbg:#01403e;--pfg:#fff;--today:#f1e6cc;--bad:#9b2c2c;--good:#2f6b4f;--muted:#8a8f87}
 *{box-sizing:border-box}body{margin:0;font:15px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--ink)}
 header{background:var(--teal);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .brand{font-weight:700;letter-spacing:.12em;color:var(--gold)}header small{opacity:.8}
 main{max-width:1000px;margin:0 auto;padding:12px}
-.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
-.stat b{display:block;font-size:24px;color:var(--teal)}
+.stat b{display:block;font-size:24px;color:var(--acc)}
 nav{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
-button,input,select{font:inherit;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:#fff}
-button{cursor:pointer}button.p{background:var(--teal);color:#fff;border-color:var(--teal)}button.t.on{background:var(--gold);border-color:var(--gold)}
+button,input,select{font:inherit;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+textarea{background:var(--card);color:var(--ink)}
+button{cursor:pointer}button.p{background:var(--pbg);color:var(--pfg);border-color:var(--pbg)}button.t.on{background:var(--gold);border-color:var(--gold);color:#1b1b1b}
 button.s{padding:5px 8px;font-size:13px}
 form.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
 .scroll{overflow-x:auto}table{border-collapse:collapse;width:100%}th,td{border:1px solid var(--line);padding:6px;text-align:center;font-size:13px;white-space:nowrap}
-td.occ{background:var(--teal);color:#fff}td.tod,th.tod{background:#f1e6cc}
+td.occ{background:var(--teal);color:#fff}td.tod,th.tod{background:var(--today)}
 .row{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line)}
 .auth{max-width:360px;margin:8vh auto}.auth input{width:100%;margin-bottom:8px}
 #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--teal2);color:#fff;padding:10px 16px;border-radius:8px;display:none}
 #toast.show{display:block}#toast.err{background:#9b2c2c}
 .rg{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}@media(min-width:700px){.rg{grid-template-columns:repeat(3,1fr)}}
-.rc{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px}.rc h4{margin:8px 0 0;font-size:15px;color:var(--teal)}
-.mg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px}.mg .h{color:#8a8f87;font-size:11px}
-.d{padding:5px 0;border-radius:6px;cursor:pointer;font-weight:500}.d.on{background:var(--gold);color:#fff}.d.td{outline:2px solid var(--teal)}
+.rc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px}.rc h4{margin:8px 0 0;font-size:15px;color:var(--acc)}
+.mg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:12px}.mg .h{color:var(--muted);font-size:11px}
+.d{padding:5px 0;border-radius:6px;cursor:pointer;font-weight:500}.d.on{background:var(--gold);color:#1b1b1b}.d.td{outline:2px solid var(--acc)}
 .nav2{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.sum{margin:6px 0}
-@media print{header,nav,.stats,button,#toast{display:none!important}body{background:#fff}}
+@media print{header,nav,.stats,button,#toast{display:none!important}body{background:#fff!important}:root{--bg:#fff!important;--card:#fff!important;--ink:#1d2b2a!important;--line:#dcd8cc!important}}
 @media print{body.pinv>*:not(#inv){display:none!important}#inv{position:static!important}#inv .noprint{display:none!important}}
 .swg{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}.sw{display:flex;align-items:center;gap:6px;text-align:left}
-.sw span{width:16px;height:16px;border-radius:50%;display:inline-block;flex:none}.sw.on{outline:2px solid var(--teal)}
+.sw span{width:16px;height:16px;border-radius:50%;display:inline-block;flex:none}.sw.on{outline:2px solid var(--acc)}
 label{display:block;font-size:13px}input[type=color]{display:block;width:100%;height:44px;padding:2px;margin-top:4px}
+.bdg{background:#c0392b;color:#fff;border-radius:10px;padding:0 6px;font-size:12px;margin-left:4px}.off{background:#fff3cd;border-color:#e0c36a;color:#3b3000}
+#inv{--card:#fff;--ink:#1d2b2a;--line:#dcd8cc;color:#1d2b2a}
 </style></head><body>
 <div id="app"><p style="padding:24px">Chargement…</p></div><div id="toast"></div>
 <script>
 function showErr(e){var m=(e&&e.message)||e||"inconnue";var a=document.getElementById("app");
 a.innerHTML='<div style="max-width:520px;margin:24px auto;padding:16px;background:#fff;border:1px solid #dcd8cc;border-radius:10px;font:15px system-ui"><b>Erreur</b><p style="word-break:break-word"></p><button onclick="location.reload()">Recharger</button></div>';
 a.querySelector("p").textContent=String(m);}
+window.addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); window.__bip = e; });
 window.addEventListener("unhandledrejection",function(e){showErr(e.reason)});
 window.addEventListener("error",function(e){showErr(e.error||e.message)});
 </script>
@@ -67,11 +72,22 @@ function themeVars() {
   const d = THEMES.stayora; return { "--teal": d.teal, "--teal2": d.teal2, "--gold": d.gold, "--bg": d.bg };
 }
 function curTheme() { const v = themeVars(); return Object.keys(THEMES).find(k => THEMES[k].teal === v["--teal"] && THEMES[k].gold === v["--gold"]) || ""; }
-function applyTheme() { const v = themeVars(); for (const k in v) document.documentElement.style.setProperty(k, v[k]); }
+function mix(a, b, t) { const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)), x = p(a), y = p(b); return "#" + x.map((v, i) => Math.round(v * (1 - t) + y[i] * t).toString(16).padStart(2, "0")).join(""); }
+function curMode() { const m = LS.get("stayora_mode"); return ["white", "cream", "tint", "dark"].includes(m) ? m : "tint"; }
+function applyTheme() {
+  const v = themeVars(), mode = curMode(), t = v["--teal"], g = v["--gold"];
+  const o = { "--teal": t, "--teal2": v["--teal2"], "--gold": g, "--bg": v["--bg"], "--card": "#ffffff", "--ink": "#1d2b2a", "--line": "#dcd8cc", "--acc": t, "--pbg": t, "--pfg": "#ffffff", "--today": mix(g, "#ffffff", .7), "--bad": "#9b2c2c", "--good": "#2f6b4f", "--muted": "#8a8f87" };
+  if (mode === "white") o["--bg"] = "#ffffff";
+  else if (mode === "tint") { o["--bg"] = mix(t, "#ffffff", .84); o["--line"] = mix(t, "#ffffff", .68); }
+  else if (mode === "dark") Object.assign(o, { "--bg": v["--teal2"], "--card": mix(v["--teal2"], "#ffffff", .1), "--ink": "#f1efe6", "--line": mix(v["--teal2"], "#ffffff", .22), "--acc": g, "--pbg": g, "--pfg": "#1b1b1b", "--today": mix(v["--teal2"], "#ffffff", .2), "--bad": "#ff9b8f", "--good": "#8fd3a8", "--muted": "#aab4b0" });
+  for (const k in o) document.documentElement.style.setProperty(k, o[k]);
+  document.documentElement.style.colorScheme = mode === "dark" ? "dark" : "light";
+  const m = document.querySelector("meta[name=theme-color]"); if (m) m.setAttribute("content", mode === "dark" ? v["--teal2"] : t);
+}
 function shade(hex, f) { const n = parseInt(hex.slice(1), 16); return "#" + [n >> 16, (n >> 8) & 255, n & 255].map(c => Math.round(c * f).toString(16).padStart(2, "0")).join(""); }
 function setTheme(k) { const t = THEMES[k]; LS.set("stayora_theme", JSON.stringify({ "--teal": t.teal, "--teal2": t.teal2, "--gold": t.gold, "--bg": t.bg })); applyTheme(); appView(); }
 function setCustom() { const m = $("#cMain").value, a = $("#cAcc").value; LS.set("stayora_theme", JSON.stringify({ "--teal": m, "--teal2": shade(m, .72), "--gold": a, "--bg": themeVars()["--bg"] })); applyTheme(); appView(); }
-function setBg(c) { const v = themeVars(); v["--bg"] = c; LS.set("stayora_theme", JSON.stringify(v)); applyTheme(); appView(); }
+function setMode(m) { LS.set("stayora_mode", m); applyTheme(); appView(); }
 function setLang(l) { LANG = l; LS.set("stayora_lang", l); document.documentElement.lang = l; if (S.user && S.prop) appView(); else if (S.user) location.reload(); else authView(); }
 const EN = {
   "E-mail": "Email", "Mot de passe (8 caractères min.)": "Password (min. 8 characters)", "Se connecter": "Sign in", "Créer un compte": "Create account", "Déconnexion": "Sign out",
@@ -107,9 +123,31 @@ const EN = {
   "Langue": "Language", "Couleurs": "Colors", "Couleurs personnalisées": "Custom colors", "Couleur principale": "Main color", "Couleur d’accent": "Accent color",
   "Appliquer": "Apply", "Réinitialiser": "Reset", "Ces réglages sont enregistrés sur cet appareil.": "These settings are saved on this device.",
   "Vert Stayora": "Stayora green", "Vert pétrole": "Deep teal", "Vert sauge": "Sage green", "Bleu océan": "Ocean blue", "Prune": "Plum", "Terre cuite": "Terracotta", "Graphite": "Graphite",
-  "Chargement…": "Loading…", "Externe": "External", "Fond de page": "Page background", "Blanc": "White", "Crème": "Cream", "Gris clair": "Light gray"
+  "Chargement…": "Loading…", "Externe": "External", "Hors ligne : dernières données de": "Offline: last data from", "Application et notifications": "App and notifications", "Installer l’application": "Install the app",
+  "✔ Application installée.": "✔ App installed.", "✔ Notifications autorisées sur cet appareil.": "✔ Notifications allowed on this device.", "Notifications bloquées : réactivez-les dans les réglages du téléphone.": "Notifications blocked: turn them back on in the phone settings.",
+  "Activer les notifications": "Enable notifications", "Tester l’affichage": "Test display", "Désactiver": "Turn off",
+  "Menu ⋮ du navigateur, puis « Ajouter à l’écran d’accueil ».": "Browser menu ⋮, then “Add to Home screen”.", "Sur iPhone : touchez Partager, puis « Sur l’écran d’accueil ».": "On iPhone: tap Share, then “Add to Home Screen”.",
+  "Sur iPhone, les notifications ne marchent que depuis l’icône de l’écran d’accueil (iOS 16.4 ou plus).": "On iPhone, notifications only work from the Home Screen icon (iOS 16.4 or later).",
+  "Les notifications automatiques (nouvelle réservation, arrivées, ménage) demandent l’étape serveur, pas encore installée.": "Automatic notifications (new reservation, arrivals, cleaning) need the server step, not installed yet.",
+  "Notifications non disponibles ici. Sur iPhone : ouvrez l’application depuis l’icône de l’écran d’accueil.": "Notifications unavailable here. On iPhone: open the app from the Home Screen icon.",
+  "Notifications refusées : réactivez-les dans les réglages du téléphone.": "Notifications refused: turn them back on in the phone settings.", "Table des notifications absente : étape Supabase à faire.": "Notifications table missing: Supabase step required.",
+  "Notifications activées sur cet appareil.": "Notifications enabled on this device.", "Notifications désactivées sur cet appareil.": "Notifications turned off on this device.", "Activez d’abord les notifications.": "Enable notifications first.",
+  "Test : les notifications s’affichent sur cet appareil.": "Test: notifications are displayed on this device.", "Liste du ménage": "Cleaning list", "À nettoyer maintenant": "To clean now", "Départs aujourd’hui (à nettoyer après le départ)": "Check-outs today (clean after departure)",
+  "Arrivées aujourd’hui (chambre à préparer)": "Check-ins today (room to prepare)", "Rien à nettoyer pour le moment.": "Nothing to clean right now.", "Contact ménage": "Housekeeping contact",
+  "Nom de la personne": "Person’s name", "Téléphone avec indicatif (ex. +66 81 234 5678)": "Phone with country code (e.g. +66 81 234 5678)", "Enregistrer le contact": "Save contact", "Contact enregistré.": "Contact saved.",
+  "Message": "Message", "Langue du message :": "Message language:", "Régénérer le message": "Regenerate message", "Partager…": "Share…", "Copier": "Copy", "Message copié.": "Message copied.",
+  "Copie impossible : sélectionnez le texte.": "Copy failed: select the text.", "Enregistrez d’abord le numéro de téléphone.": "Save the phone number first.",
+  "WhatsApp et SMS s’ouvrent sur le numéro enregistré, avec le message déjà écrit : il reste à appuyer sur Envoyer. Un envoi 100 % automatique demande une offre WhatsApp Business ou SMS payante.": "WhatsApp and SMS open on the saved number with the message already written: you just tap Send. Fully automatic sending requires a paid WhatsApp Business or SMS service.",
+  "Enregistré sur cet appareil seulement (étape Supabase à faire pour le partager).": "Saved on this device only (Supabase step required to share it).",
+  "Seul l’administrateur peut modifier ce contact.": "Only the administrator can edit this contact.", "Ménage à faire": "Cleaning to do", "Commencer": "Start", "Terminé": "Done", "Signaler un problème": "Report an issue", "Décrivez le problème :": "Describe the problem:",
+  "Journal des chambres": "Room log", "Équipe": "Team", "Retirer": "Remove", "Aucun membre.": "No members.", "Administrateur": "Administrator", "Réceptionniste": "Receptionist", "Ménage": "Housekeeping",
+  "E-mail de l’employé": "Employee email", "Ajouter à l’équipe": "Add to team", "Retirer cette personne de l’équipe ?": "Remove this person from the team?", "Membre ajouté.": "Member added.", "Membre retiré.": "Member removed.",
+  "La personne doit d’abord créer son compte avec cet e-mail (écran de connexion, « Créer un compte »).": "The person must first create an account with this email (sign-in screen, “Create account”).",
+  "Aucun compte avec cet e-mail : la personne doit d’abord créer son compte.": "No account with this email: the person must create an account first.",
+  "Fonction d’équipe absente : étape Supabase à faire.": "Team function missing: Supabase step required.",
+  "Vous êtes employé(e) ?": "Are you an employee?", "Recharger": "Reload", "Fond de page": "Page background", "Blanc": "White", "Crème": "Cream", "Teinté": "Tinted", "Foncé": "Dark"
 };
-const FRAG = [["Confirmée", "Confirmed"], ["En attente", "Pending"], ["Annulée", "Cancelled"], ["Arrivé", "Checked in"], ["Parti", "Checked out"], ["Réservé en chambre", "Booked in room"], ["Prix par nuit", "Price per night"], ["Prix/nuit", "Price/night"], ["Encaissé ce mois :", "Collected this month:"], ["Soldes dus :", "Balances due:"],
+const FRAG = [["Nouvelle réservation :", "New reservation:"], ["Hors ligne : dernières données de", "Offline: last data from"], ["Disponible", "Available"], ["Occupée", "Occupied"], ["En nettoyage", "Being cleaned"], ["À nettoyer", "To clean"], ["Hors service", "Out of service"], ["Donnez votre e-mail", "Give your email"], ["à votre responsable, puis rechargez cette page.", "to your manager, then reload this page."], ["Confirmée", "Confirmed"], ["En attente", "Pending"], ["Annulée", "Cancelled"], ["Arrivé", "Checked in"], ["Parti", "Checked out"], ["Réservé en chambre", "Booked in room"], ["Prix par nuit", "Price per night"], ["Prix/nuit", "Price/night"], ["Encaissé ce mois :", "Collected this month:"], ["Soldes dus :", "Balances due:"],
   ["Reste à payer :", "Balance due:"], ["Ce mois :", "This month:"], ["d’occupation", "occupancy"], ["séjour(s)", "stay(s)"], ["nuit(s)", "night(s)"], ["importée(s).", "imported."], ["réservation(s)", "reservation(s)"],
   ["Ignorées", "Skipped"], ["Paiements ·", "Payments ·"], ["Remboursement", "Refund"], ["Paiement", "Payment"], ["Acompte", "Deposit"], ["Espèces", "Cash"], ["Virement", "Transfer"], ["Carte", "Card"],
   ["Soldé", "Settled"], ["Solde", "Balance"], ["Payé", "Paid"], ["Facture ", "Invoice "], ["Importé", "Imported"], ["Erreur :", "Error:"], [" ch. ", " rm. "]];
@@ -126,14 +164,15 @@ function translateDom(root) {
   root.querySelectorAll("[placeholder]").forEach(e => e.placeholder = tr(e.placeholder));
 }
 function setView() {
-  const cur = curTheme(), c = themeVars(), c0 = c["--bg"];
+  const cur = curTheme(), c = themeVars(), c0 = curMode();
   const sw = Object.entries(THEMES).map(([k, t]) => `<button class="sw ${cur === k ? "on" : ""}" onclick="setTheme('${k}')"><span style="background:${t.teal}"></span><span style="background:${t.gold}"></span><span style="background:${t.bg};border:1px solid #bbb"></span>${esc(t.n)}</button>`).join("");
   return `<div class="card"><h3>Langue</h3><button class="${LANG === "fr" ? "p" : ""}" onclick="setLang('fr')">Français</button> <button class="${LANG === "en" ? "p" : ""}" onclick="setLang('en')">English</button></div>
-  <div class="card"><h3>Couleurs</h3><div class="swg">${sw}</div><h4>Fond de page</h4><p>${[["#ffffff", "Blanc"], ["#f4f3ec", "Crème"], ["#f1f3f4", "Gris clair"]].map(([c, n]) => `<button class="${c === c0 ? "p" : ""}" onclick="setBg('${c}')">${n}</button>`).join(" ")}</p><h4>Couleurs personnalisées</h4>
+  <div class="card"><h3>Couleurs</h3><div class="swg">${sw}</div><h4>Fond de page</h4><p>${[["white", "Blanc"], ["cream", "Crème"], ["tint", "Teinté"], ["dark", "Foncé"]].map(([k, n]) => `<button class="${k === c0 ? "p" : ""}" onclick="setMode('${k}')">${n}</button>`).join(" ")}</p><h4>Couleurs personnalisées</h4>
   <label>Couleur principale<input type="color" id="cMain" value="${esc(c["--teal"])}"></label><label>Couleur d’accent<input type="color" id="cAcc" value="${esc(c["--gold"])}"></label>
-  <p><button class="p" onclick="setCustom()">Appliquer</button> <button onclick="setTheme('stayora')">Réinitialiser</button></p><small>Ces réglages sont enregistrés sur cet appareil.</small></div>`;
+  <p><button class="p" onclick="setCustom()">Appliquer</button> <button onclick="setTheme('stayora')">Réinitialiser</button></p><small>Ces réglages sont enregistrés sur cet appareil.</small></div>${appCard()}${teamCard()}`;
 }
-const S = { tab: "cal", off: 0, mo: 0, sm: 0, pays: [], pay: null };
+const S = { tab: "cal", off: 0, mo: 0, sm: 0, pays: [], pay: null, mlang: LANG, msg: null, newN: 0, offline: 0 };
+const ROLE = { org_admin: "Administrateur", manager: "Manager", receptionist: "Réceptionniste", housekeeping: "Ménage" };
 const KIND = { payment: "Paiement", deposit: "Acompte", refund: "Remboursement" }, MET = { cash: "Espèces", card: "Carte", transfer: "Virement", other: "Autre" };
 const ST = { pending:"En attente", confirmed:"Confirmée", checked_in:"Arrivé", checked_out:"Parti", cancelled:"Annulée", no_show:"No-show" };
 const RS = { available:"Disponible", occupied:"Occupée", to_clean:"À nettoyer", cleaning:"En nettoyage", out_of_service:"Hors service", maintenance:"Maintenance" };
@@ -142,8 +181,66 @@ const addDays = (d, n) => { const x = new Date(d + "T00:00:00Z"); x.setUTCDate(x
 const toast = (m, err) => { const t = $("#toast"); t.textContent = tr(m); t.className = "show" + (err ? " err" : ""); setTimeout(() => t.className = "", 4000); };
 const view = h => { $("#app").innerHTML = h; translateDom($("#app")); };
 
+
+const VAPID = "BFhe2BDDZFbCuvMaJLWB0fQQ6Ztbs65iWB89L4m9WzfBm5cufJO8BJfbuYLiABpwFP15o44uzgDAxvAK3THLLps";
+function b64u(x) { const pad = "=".repeat((4 - x.length % 4) % 4), b = atob((x + pad).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(b, c => c.charCodeAt(0)); }
+function saveCache(p) { try { LS.set("stayora_cache", JSON.stringify({ pid: p, at: Date.now(), rooms: S.rooms, rr: S.rr, res: S.res, guests: S.guests, pays: S.pays, hist: S.hist, team: S.team })); } catch (e) {} }
+function offlineLoad(rs, p) {
+  if (!rs.some(x => x.error && /fetch|network/i.test(String(x.error.message)))) return false;
+  try { const c = JSON.parse(LS.get("stayora_cache") || "null"); if (!c || c.pid !== p) return false; S.rooms = c.rooms; S.rr = c.rr; S.res = c.res; S.guests = c.guests; S.pays = c.pays; S.hist = c.hist; S.team = c.team; S.offline = c.at; return true; } catch (e) { return false; }
+}
+function formDirty() { return [...document.querySelectorAll("#app input, #app textarea")].some(e => e.type !== "button" && e.type !== "color" && e.id !== "impFile" && e.value !== e.defaultValue); }
+async function softRefresh() {
+  await load();
+  if (S.newIds && S.newIds.length) { const id = S.newIds[S.newIds.length - 1]; S.newIds = []; toast("Nouvelle réservation : " + guestName(id)); }
+  if (S.edit || S.pay || formDirty()) { S.pending = true; return; }
+  S.pending = false; appView();
+}
+function onLive(t, p) {
+  if (t === "reservations" && p.eventType === "INSERT" && p.new && p.new.created_by !== S.user.id) { S.newN++; (S.newIds = S.newIds || []).push(p.new.id); }
+  clearTimeout(S.rt); S.rt = setTimeout(softRefresh, 700);
+}
+function startRealtime() {
+  if (S.rtOn || !sb.channel || !S.prop) return; S.rtOn = true;
+  const ch = sb.channel("live-" + S.prop.id);
+  ["reservations", "reservation_rooms", "rooms", "payments"].forEach(t => ch.on("postgres_changes", { event: "*", schema: "public", table: t, filter: "property_id=eq." + S.prop.id }, pl => onLive(t, pl)));
+  ch.subscribe();
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) softRefresh(); });
+  document.addEventListener("focusout", () => setTimeout(() => { if (S.pending && !formDirty()) softRefresh(); }, 400));
+  setInterval(() => { if (!document.hidden && S.user && S.prop) softRefresh(); }, 90000);
+}
+async function installApp() { const e = window.__bip; if (!e) return; e.prompt(); try { await e.userChoice; } catch (x) {} window.__bip = null; appView(); }
+async function enablePush() {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return toast("Notifications non disponibles ici. Sur iPhone : ouvrez l’application depuis l’icône de l’écran d’accueil.", 1);
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") return toast("Notifications refusées : réactivez-les dans les réglages du téléphone.", 1);
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(VAPID) });
+    const j = sub.toJSON();
+    const r = await sb.from("push_subscriptions").upsert({ user_id: S.user.id, organization_id: S.orgId, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth, device: navigator.userAgent.slice(0, 120) }, { onConflict: "endpoint" });
+    if (r.error) return toast(/push_subscriptions/.test(r.error.message) ? "Table des notifications absente : étape Supabase à faire." : r.error.message, 1);
+    toast("Notifications activées sur cet appareil."); appView();
+  } catch (e) { toast(String(e.message || e), 1); }
+}
+async function disablePush() {
+  try { const reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription(); if (sub) { await sb.from("push_subscriptions").delete().eq("endpoint", sub.endpoint); await sub.unsubscribe(); } toast("Notifications désactivées sur cet appareil."); } catch (e) { toast(String(e.message || e), 1); }
+}
+async function testPush() {
+  if (!("Notification" in window) || Notification.permission !== "granted") return toast("Activez d’abord les notifications.", 1);
+  const reg = await navigator.serviceWorker.ready; reg.showNotification("Stayora", { body: tr("Test : les notifications s’affichent sur cet appareil.") });
+}
+function appCard() {
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone, ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  const perm = "Notification" in window ? Notification.permission : "unsupported";
+  const inst = standalone ? "<p>✔ Application installée.</p>" : window.__bip ? `<p><button class="p" onclick="installApp()">Installer l’application</button></p>` : `<p>${ios ? "Sur iPhone : touchez Partager, puis « Sur l’écran d’accueil »." : "Menu ⋮ du navigateur, puis « Ajouter à l’écran d’accueil »."}</p>`;
+  const st = perm === "granted" ? "<p>✔ Notifications autorisées sur cet appareil.</p>" : perm === "denied" ? "<p>Notifications bloquées : réactivez-les dans les réglages du téléphone.</p>" : "";
+  const note = ios && !standalone ? "<small>Sur iPhone, les notifications ne marchent que depuis l’icône de l’écran d’accueil (iOS 16.4 ou plus).</small><br>" : "";
+  return `<div class="card"><h3>Application et notifications</h3>${inst}${st}<p><button class="p" onclick="enablePush()">Activer les notifications</button> <button onclick="testPush()">Tester l’affichage</button> <button class="s" onclick="disablePush()">Désactiver</button></p>${note}<small>Les notifications automatiques (nouvelle réservation, arrivées, ménage) demandent l’étape serveur, pas encore installée.</small></div>`;
+}
 async function init() {
   applyTheme(); document.documentElement.lang = LANG;
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
   const { data: { session } } = await sb.auth.getSession();
   if (!session) return authView();
   S.user = session.user;
@@ -154,7 +251,7 @@ async function init() {
   const { data: p } = await sb.from("properties").select("*").eq("organization_id", S.orgId).order("created_at");
   if (!p || !p.length) return onboardView(true);
   S.prop = p[0]; if (S.role === "housekeeping") S.tab = "rooms";
-  await load(); appView();
+  await load(); appView(); startRealtime();
 }
 
 function authView() {
@@ -169,7 +266,7 @@ async function auth(login) {
   if (!login && !data.session) return toast("Compte créé. Confirmez votre e-mail puis connectez-vous.");
   init();
 }
-const signOut = async () => { await sb.auth.signOut(); S.user = null; authView(); };
+const signOut = async () => { LS.set("stayora_cache", ""); await sb.auth.signOut(); S.user = null; authView(); };
 
 function onboardView(hasOrg) {
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -177,7 +274,9 @@ function onboardView(hasOrg) {
   ${hasOrg ? "" : `<input name="org" placeholder="Nom de votre société" required>`}
   <input name="prop" placeholder="Nom de l’établissement" required>
   <input name="cur" value="EUR" maxlength="3" required><input name="tz" value="${esc(tz)}" required>
-  <button class="p">Créer</button></form></div>`);
+  <button class="p">Créer</button></form>
+  <hr style="margin:16px 0"><p><b>Vous êtes employé(e) ?</b> Donnez votre e-mail (${esc(S.user ? S.user.email : "")}) à votre responsable, puis rechargez cette page.</p>
+  <button onclick="location.reload()">Recharger</button> <button onclick="signOut()">Déconnexion</button></div>`);
 }
 async function onboard(e, hasOrg) {
   e.preventDefault(); const f = new FormData(e.target); let org = S.orgId;
@@ -189,13 +288,16 @@ async function onboard(e, hasOrg) {
 
 async function load() {
   const p = S.prop.id, q = t => sb.from(t).select("*").eq("property_id", p);
-  const [r, rr, rs, g, py] = await Promise.all([q("rooms").order("number"), q("reservation_rooms"), q("reservations").order("created_at", { ascending: false }), q("guests"), q("payments")]);
-  S.rooms = r.data || []; S.rr = rr.data || []; S.res = rs.data || []; S.guests = g.data || []; S.pays = py.data || [];
+  const mgr = ["org_admin", "manager"].includes(S.role);
+  const [r, rr, rs, g, py, hi, tm] = await Promise.all([q("rooms").order("number"), q("reservation_rooms"), q("reservations").order("created_at", { ascending: false }), q("guests"), q("payments"),
+    q("room_status_history").order("changed_at", { ascending: false }).limit(30), mgr ? sb.rpc("list_team", { p_org: S.orgId }) : Promise.resolve({ data: [] })]);
+  if (offlineLoad([r, rr, rs, g], p)) return; S.offline = 0;
+  S.rooms = r.data || []; S.rr = rr.data || []; S.res = rs.data || []; S.guests = g.data || []; S.pays = py.data || []; S.hist = hi.data || []; S.team = Array.isArray(tm.data) ? tm.data : []; saveCache(p);
 }
 const refresh = async () => { await load(); appView(); };
 const fmt = n => Number(n || 0).toLocaleString(LOC(), { maximumFractionDigits: 2 }) + " " + S.prop.currency;
 const paidOf = id => (S.pays || []).filter(p => p.reservation_id === id).reduce((u, p) => u + (p.kind === "refund" ? -1 : 1) * Number(p.amount), 0);
-function moneyLine(r) { const t = Number(r.total_amount || 0), p = paidOf(r.id); if (!t && !p) return ""; const b = t - p; return `<br>Total ${esc(fmt(t))} · Payé ${esc(fmt(p))} · <b style="color:${b > 0 ? "#9b2c2c" : "#2f6b4f"}">${b > 0 ? "Solde " + esc(fmt(b)) : "Soldé"}</b>`; }
+function moneyLine(r) { const t = Number(r.total_amount || 0), p = paidOf(r.id); if (!t && !p) return ""; const b = t - p; return `<br>Total ${esc(fmt(t))} · Payé ${esc(fmt(p))} · <b style="color:var(${b > 0 ? "--bad" : "--good"})">${b > 0 ? "Solde " + esc(fmt(b)) : "Soldé"}</b>`; }
 const resOf = id => S.res.find(x => x.id === id) || {};
 const guestName = rid => { const g = S.guests.find(x => x.id === resOf(rid).guest_id); return g ? `${g.first_name} ${g.last_name}` : "Externe"; };
 
@@ -205,13 +307,13 @@ function appView() {
   const arr = live.filter(x => x.check_in === t && ["pending", "confirmed"].includes(resOf(x.reservation_id).status)).length;
   const dep = live.filter(x => x.check_out === t && resOf(x.reservation_id).status === "checked_in").length;
   const n = S.rooms.length, clean = S.rooms.filter(x => x.status === "to_clean").length;
-  const tabs = S.role === "housekeeping" ? [["rooms", "Chambres"], ["set", "Réglages"]] : [["cal", "Calendrier"], ["res", "Réservations"], ["sum", "Résumé"], ["rooms", "Chambres"], ["set", "Réglages"]];
+  const tabs = S.role === "housekeeping" ? [["rooms", "Chambres"], ["set", "Réglages"]] : [["cal", "Calendrier"], ["res", "Réservations"], ["sum", "Résumé"], ["clean", "Ménage"], ["rooms", "Chambres"], ["set", "Réglages"]];
   view(`<header><div><span class="brand">STAYORA</span> <small>${esc(S.prop.name)}</small></div><button class="s" onclick="signOut()">Déconnexion</button></header>
   <main><div class="card stats">
    <div class="stat"><b>${n ? Math.round(occ / n * 100) : 0} %</b>Occupation</div><div class="stat"><b>${arr}</b>Arrivées</div>
    <div class="stat"><b>${dep}</b>Départs</div><div class="stat"><b>${n - occ}</b>Libres</div><div class="stat"><b>${clean}</b>À nettoyer</div></div>
-  ${todayCard()}<nav>${tabs.map(([k, l]) => `<button class="t ${S.tab === k ? "on" : ""}" onclick="S.tab='${k}';appView()">${l}</button>`).join("")}</nav>
-  ${S.tab === "cal" ? calView() : S.tab === "res" ? resView() : S.tab === "sum" ? sumView() : S.tab === "set" ? setView() : roomsView()}</main>`);
+  ${S.offline ? `<div class="card off">Hors ligne : dernières données de ${esc(new Date(S.offline).toLocaleTimeString(LOC(), { hour: "2-digit", minute: "2-digit" }))}.</div>` : ""}${todayCard()}<nav>${tabs.map(([k, l]) => `<button class="t ${S.tab === k ? "on" : ""}" onclick="S.tab='${k}';if('${k}'==='res')S.newN=0;appView()">${l}${k === "res" && S.newN && S.tab !== "res" ? ` <span class="bdg">${S.newN}</span>` : ""}</button>`).join("")}</nav>
+  ${S.tab === "cal" ? calView() : S.tab === "res" ? resView() : S.tab === "sum" ? sumView() : S.tab === "clean" ? cleanView() : S.tab === "set" ? setView() : roomsView()}</main>`);
 }
 
 function calView() {
@@ -303,6 +405,63 @@ function invoice(id) {
   <p style="text-align:right;font-size:17px"><b>Reste à payer : ${esc(fmt(tot - paid))}</b></p></div>`);
   translateDom($("#inv"));
 }
+const MSG = {
+  fr: { hi: (n, p, d) => `Bonjour${n ? " " + n : ""},\nMénage du ${d} — ${p}`, now: "À nettoyer maintenant", dep: "Départs aujourd’hui (à nettoyer après le départ)", arr: "Arrivées aujourd’hui (chambre à préparer)", rm: "chambres", none: "Rien à nettoyer pour le moment.", ty: "Merci !" },
+  en: { hi: (n, p, d) => `Hello${n ? " " + n : ""},\nCleaning list for ${d} — ${p}`, now: "To clean now", dep: "Check-outs today (clean after departure)", arr: "Check-ins today (room to prepare)", rm: "rooms", none: "Nothing to clean right now.", ty: "Thank you!" },
+  th: { hi: (n, p, d) => `สวัสดี${n ? " " + n : ""}\nรายการทำความสะอาดวันที่ ${d} — ${p}`, now: "ห้องที่ต้องทำความสะอาดตอนนี้", dep: "ห้องที่แขกเช็คเอาท์วันนี้ (ทำความสะอาดหลังแขกออก)", arr: "ห้องที่ต้องเตรียมสำหรับแขกเช็คอินวันนี้", rm: "ห้อง", none: "ตอนนี้ยังไม่มีห้องที่ต้องทำความสะอาด", ty: "ขอบคุณ" }
+};
+const roomNo = r => (String(r.number).match(/\d+/g) || [r.number]).pop();
+function cleanData() {
+  const t = today(), live = S.rr.filter(x => x.is_blocking), no = id => { const r = S.rooms.find(y => y.id === id); return r ? roomNo(r) : "?"; };
+  const uniq = a => [...new Set(a)];
+  return { t, now: uniq(S.rooms.filter(r => ["to_clean", "cleaning"].includes(r.status)).map(roomNo)),
+    dep: uniq(live.filter(x => x.check_out === t && resOf(x.reservation_id).status === "checked_in").map(x => no(x.room_id))),
+    arr: uniq(live.filter(x => x.check_in === t && ["pending", "confirmed"].includes(resOf(x.reservation_id).status)).map(x => no(x.room_id))) };
+}
+function cleanerInfo() { return { name: S.prop.cleaner_name ?? LS.get("stayora_cn") ?? "", phone: S.prop.cleaner_phone ?? LS.get("stayora_cp") ?? "" }; }
+function buildMsg(lang) {
+  const d = cleanData(), m = MSG[lang] || MSG.fr, c = cleanerInfo(), L = (k, a) => a.length ? `\n${m[k]} : ${m.rm} ${a.join(", ")}` : "";
+  const body = L("now", d.now) + L("dep", d.dep) + L("arr", d.arr);
+  return m.hi(c.name, S.prop.name, d.t) + (body || "\n" + m.none) + "\n" + m.ty;
+}
+function waNumber(p) {
+  let d = String(p || "").replace(/\D/g, ""); if (!d) return "";
+  if (d.startsWith("00")) d = d.slice(2); else if (d.startsWith("0") && /Asia\/(Bangkok|Phuket)/.test(S.prop.timezone || "")) d = "66" + d.slice(1);
+  return d;
+}
+function cleanView() {
+  const c = cleanerInfo(), d = cleanData(), admin = S.role === "org_admin", msg = S.msg == null ? buildMsg(S.mlang) : S.msg;
+  const lst = (t, a) => a.length ? `<p><b>${t}</b> : ${esc(a.join(", "))}</p>` : "";
+  const todo = lst("À nettoyer maintenant", d.now) + lst("Départs aujourd’hui (à nettoyer après le départ)", d.dep) + lst("Arrivées aujourd’hui (chambre à préparer)", d.arr) || "<p>Rien à nettoyer pour le moment.</p>";
+  const contact = admin ? `<form class="g" onsubmit="saveCleaner(event)"><input name="cn" value="${esc(c.name)}" placeholder="Nom de la personne"><input name="cp" type="tel" value="${esc(c.phone)}" placeholder="Téléphone avec indicatif (ex. +66 81 234 5678)"><button class="p">Enregistrer le contact</button></form>`
+    : `<p>${esc(c.name)} ${esc(c.phone)}</p><small>Seul l’administrateur peut modifier ce contact.</small>`;
+  const lg = [["fr", "Français"], ["en", "English"], ["th", "ไทย"]].map(([k, n]) => `<button class="s ${S.mlang === k ? "p" : ""}" onclick="setML('${k}')">${n}</button>`).join(" ");
+  return `<div class="card"><h3>Liste du ménage</h3>${todo}</div>
+  <div class="card"><h3>Contact ménage</h3>${contact}</div>
+  <div class="card"><h3>Message</h3><p>Langue du message : ${lg}</p>
+  <textarea rows="8" oninput="S.msg=this.value" style="width:100%;font:inherit;padding:9px;border-radius:8px;border:1px solid var(--line)">${esc(msg)}</textarea>
+  <p><button class="s" onclick="S.msg=null;appView()">Régénérer le message</button></p>
+  <p><button class="p" onclick="sendMsg('wa')">WhatsApp</button> <button onclick="sendMsg('sms')">SMS</button> <button onclick="sendMsg('line')">LINE</button> <button onclick="sendMsg('share')">Partager…</button> <button onclick="sendMsg('copy')">Copier</button></p>
+  <small>WhatsApp et SMS s’ouvrent sur le numéro enregistré, avec le message déjà écrit : il reste à appuyer sur Envoyer. Un envoi 100 % automatique demande une offre WhatsApp Business ou SMS payante.</small></div>`;
+}
+function setML(k) { S.mlang = k; S.msg = null; appView(); }
+async function saveCleaner(e) {
+  e.preventDefault(); const f = new FormData(e.target), n = f.get("cn").trim(), p = f.get("cp").trim();
+  const r = await sb.from("properties").update({ cleaner_name: n || null, cleaner_phone: p || null }).eq("id", S.prop.id);
+  if (r.error) { LS.set("stayora_cn", n); LS.set("stayora_cp", p); toast("Enregistré sur cet appareil seulement (étape Supabase à faire pour le partager).", 1); S.msg = null; return appView(); }
+  S.prop.cleaner_name = n || null; S.prop.cleaner_phone = p || null; LS.set("stayora_cn", ""); LS.set("stayora_cp", "");
+  toast("Contact enregistré."); S.msg = null; appView();
+}
+async function copyMsg() { try { await navigator.clipboard.writeText(S.msg == null ? buildMsg(S.mlang) : S.msg); toast("Message copié."); } catch (e) { toast("Copie impossible : sélectionnez le texte.", 1); } }
+function sendMsg(kind) {
+  const msg = S.msg == null ? buildMsg(S.mlang) : S.msg, num = waNumber(cleanerInfo().phone), enc = encodeURIComponent(msg);
+  if ((kind === "wa" || kind === "sms") && !num) return toast("Enregistrez d’abord le numéro de téléphone.", 1);
+  if (kind === "wa") window.open("https://wa.me/" + num + "?text=" + enc, "_blank");
+  else if (kind === "sms") location.href = "sms:+" + num + "?body=" + enc;
+  else if (kind === "line") window.open("https://line.me/R/share?text=" + enc, "_blank");
+  else if (kind === "share" && navigator.share) navigator.share({ text: msg }).catch(() => {});
+  else copyMsg();
+}
 function dayTap(room, k) {
   const x = S.rr.find(z => z.room_id === room && z.is_blocking && z.check_in <= k && k < z.check_out);
   if (x) { if (S.role === "housekeeping") return toast(guestName(x.reservation_id) + " · " + x.check_in + " → " + x.check_out); return editRes(x.reservation_id); }
@@ -351,8 +510,8 @@ async function saveEdit(e) {
   if (a.error) return toast(a.error.message, 1);
   if (r.guest_id && f.get("fn") !== null) await sb.from("guests").update({ first_name: f.get("fn"), last_name: f.get("ln") }).eq("id", r.guest_id);
   if (r.status === "checked_in" && room !== x.room_id) {
-    await sb.from("rooms").update({ status: "available" }).eq("id", x.room_id);
-    await sb.from("rooms").update({ status: "occupied" }).eq("id", room);
+    await setRoomQ(x.room_id, "available");
+    await setRoomQ(room, "occupied");
   }
   S.edit = null; toast("Réservation modifiée."); refresh();
 }
@@ -387,8 +546,8 @@ async function setStatus(id, st) {
   const r = await sb.from("reservations").update({ status: st }).eq("id", id);
   if (r.error) return toast(r.error.message, 1);
   const x = S.rr.find(y => y.reservation_id === id);
-  if (x && st === "checked_in") await sb.from("rooms").update({ status: "occupied" }).eq("id", x.room_id);
-  if (x && st === "checked_out") await sb.from("rooms").update({ status: "to_clean" }).eq("id", x.room_id);
+  if (x && st === "checked_in") await setRoomQ(x.room_id, "occupied");
+  if (x && st === "checked_out") await setRoomQ(x.room_id, "to_clean");
   refresh();
 }
 
@@ -396,9 +555,13 @@ function roomsView() {
   const edit = ["org_admin", "manager"].includes(S.role);
   const form = edit ? `<div class="card"><h3>Ajouter une chambre</h3><form class="g" onsubmit="addRoom(event)"><input name="num" placeholder="Numéro" required><input name="name" placeholder="Nom"><input name="desc" placeholder="Description"><button class="p">Ajouter</button></form></div>` : "";
   const list = S.rooms.map(r => `<div class="row"><div><b>${esc(r.number)}</b> ${esc(r.name || "")}</div>
-  <select onchange="roomStatus('${r.id}',this.value)">${Object.entries(RS).map(([k, l]) => `<option value="${k}" ${k === r.status ? "selected" : ""}>${l}</option>`).join("")}</select></div>`).join("") || "<p>Aucune chambre.</p>";
+  <div><select onchange="roomStatus('${r.id}',this.value)">${Object.entries(RS).map(([k, l]) => `<option value="${k}" ${k === r.status ? "selected" : ""}>${l}</option>`).join("")}</select> <button class="s" onclick="reportIssue('${r.id}')">Signaler un problème</button></div></div>`).join("") || "<p>Aucune chambre.</p>";
   const imp = edit ? `<div class="card"><h3>Importer l’ancienne application</h3><p>Choisissez le fichier de sauvegarde, ou collez son texte.</p><input type="file" id="impFile" accept=".json,application/json"><textarea id="impTxt" rows="3" placeholder="…ou collez ici le texte de la sauvegarde" style="width:100%;margin:8px 0;font:inherit;padding:9px;border-radius:8px;border:1px solid var(--line)"></textarea><button class="p" onclick="doImport()">Importer</button></div>` : "";
-  return form + imp + `<div class="card">${list}</div>`;
+  const todo = S.rooms.filter(r => ["to_clean", "cleaning"].includes(r.status));
+  const clean = todo.length ? `<div class="card"><h3>Ménage à faire</h3>${todo.map(r => `<div class="row"><div><b>${esc(r.number)}</b> · ${esc(RS[r.status])}</div><div>${r.status === "to_clean" ? `<button class="p s" onclick="roomSet('${r.id}','cleaning')">Commencer</button>` : `<button class="p s" onclick="roomSet('${r.id}','available')">Terminé</button>`}</div></div>`).join("")}</div>` : "";
+  const who = id => { const m = (S.team || []).find(t => t.user_id === id); return m ? String(m.email).split("@")[0] : ""; };
+  const hist = (S.hist || []).length ? `<div class="card"><h3>Journal des chambres</h3>${S.hist.slice(0, 15).map(h => { const rm = S.rooms.find(r => r.id === h.room_id); return `<div class="row"><div><b>${esc(rm?.number)}</b> · ${esc(RS[h.old_status] || "—")} → ${esc(RS[h.new_status])}${h.note ? "<br>" + esc(h.note) : ""}</div><small>${esc(new Date(h.changed_at).toLocaleString(LOC(), { dateStyle: "short", timeStyle: "short" }))}${who(h.changed_by) ? "<br>" + esc(who(h.changed_by)) : ""}</small></div>`; }).join("")}</div>` : "";
+  return clean + form + `<div class="card">${list}</div>` + hist + imp;
 }
 async function doImport() {
   const f = $("#impFile").files[0]; let txt = $("#impTxt").value.trim();
@@ -439,9 +602,35 @@ async function addRoom(e) {
   const r = await sb.from("rooms").insert({ organization_id: S.orgId, property_id: S.prop.id, number: f.get("num"), name: f.get("name") || null, description: f.get("desc") || null });
   if (r.error) return toast(r.error.message, 1); refresh();
 }
-async function roomStatus(id, st) {
-  const r = await sb.from("rooms").update({ status: st }).eq("id", id);
-  if (r.error) toast("Modification non autorisée pour votre rôle.", 1); refresh();
+async function setRoomQ(id, st, note) {
+  let r = await sb.rpc("set_room_status", { p_room: id, p_status: st, p_note: note || null });
+  if (r.error && /set_room_status|schema cache|PGRST202/.test(String(r.error.message) + String(r.error.code))) r = await sb.from("rooms").update({ status: st }).eq("id", id);
+  return r;
+}
+async function roomSet(id, st, note) {
+  const r = await setRoomQ(id, st, note);
+  if (r.error) return toast(/not allowed|row-level|permission|42501/i.test(String(r.error.message) + String(r.error.code)) ? "Modification non autorisée pour votre rôle." : r.error.message, 1);
+  refresh();
+}
+function roomStatus(id, st) { roomSet(id, st); }
+function reportIssue(id) { const n = prompt(tr("Décrivez le problème :")); if (n && n.trim()) roomSet(id, "maintenance", n.trim()); }
+async function addMember(e) {
+  e.preventDefault(); const f = new FormData(e.target);
+  const r = await sb.rpc("add_member", { p_org: S.orgId, p_email: f.get("em"), p_role: f.get("role") });
+  if (r.error) return toast(/user_not_found/.test(r.error.message) ? "Aucun compte avec cet e-mail : la personne doit d’abord créer son compte." : /add_member|schema cache/.test(r.error.message) ? "Fonction d’équipe absente : étape Supabase à faire." : r.error.message, 1);
+  toast("Membre ajouté."); refresh();
+}
+async function rmMember(id) {
+  if (!confirm(tr("Retirer cette personne de l’équipe ?"))) return;
+  const r = await sb.from("memberships").delete().eq("id", id);
+  if (r.error) return toast(r.error.message, 1);
+  toast("Membre retiré."); refresh();
+}
+function teamCard() {
+  if (!["org_admin", "manager"].includes(S.role)) return "";
+  const rows = (S.team || []).map(m => `<div class="row"><div><b>${esc(m.email)}</b><br>${esc(ROLE[m.role] || m.role)}</div>${S.role === "org_admin" && m.user_id !== S.user.id ? `<button class="s" onclick="rmMember('${m.membership_id}')">Retirer</button>` : ""}</div>`).join("") || "<p>Aucun membre.</p>";
+  const form = S.role === "org_admin" ? `<form class="g" onsubmit="addMember(event)" style="margin-top:10px"><input name="em" type="email" placeholder="E-mail de l’employé" required><select name="role"><option value="manager">Manager</option><option value="receptionist">Réceptionniste</option><option value="housekeeping">Ménage</option><option value="org_admin">Administrateur</option></select><button class="p">Ajouter à l’équipe</button></form><small>La personne doit d’abord créer son compte avec cet e-mail (écran de connexion, « Créer un compte »).</small>` : "";
+  return `<div class="card"><h3>Équipe</h3>${rows}${form}</div>`;
 }
 init().catch(showErr);
 </script></body></html>
