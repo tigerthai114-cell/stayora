@@ -125,7 +125,7 @@ const EN = {
   "Langue": "Language", "Couleurs": "Colors", "Couleurs personnalisées": "Custom colors", "Couleur principale": "Main color", "Couleur d’accent": "Accent color",
   "Appliquer": "Apply", "Réinitialiser": "Reset", "Ces réglages sont enregistrés sur cet appareil.": "These settings are saved on this device.",
   "Vert Stayora": "Stayora green", "Vert pétrole": "Deep teal", "Vert sauge": "Sage green", "Bleu océan": "Ocean blue", "Prune": "Plum", "Terre cuite": "Terracotta", "Graphite": "Graphite",
-  "Chargement…": "Loading…", "Externe": "External", "Notifications": "Notifications", "Messages": "Messages", "Chambres à nettoyer": "Rooms to clean", "Aucune chambre à nettoyer pour le moment.": "No rooms to clean right now.",
+  "Chargement…": "Loading…", "Externe": "External", "Envoyer la facture :": "Send the invoice:", "Notifications": "Notifications", "Messages": "Messages", "Chambres à nettoyer": "Rooms to clean", "Aucune chambre à nettoyer pour le moment.": "No rooms to clean right now.",
   "Aucun message pour le moment.": "No messages yet.", "Publier pour l’équipe de ménage": "Publish for the cleaning team", "Dernier message publié :": "Last message published:",
   "Fonction de message absente : étape Supabase à faire.": "Message function missing: Supabase step required.", "Message publié pour l’équipe de ménage.": "Message published for the cleaning team.", "Hors ligne : dernières données de": "Offline: last data from", "Application et notifications": "App and notifications", "Installer l’application": "Install the app",
   "✔ Application installée.": "✔ App installed.", "✔ Notifications autorisées sur cet appareil.": "✔ Notifications allowed on this device.", "Notifications bloquées : réactivez-les dans les réglages du téléphone.": "Notifications blocked: turn them back on in the phone settings.",
@@ -407,14 +407,37 @@ async function savePay(e) {
   if (r.error) return toast(/payments/.test(r.error.message) ? "La table des paiements n’existe pas encore : étape Supabase à faire." : r.error.message, 1);
   toast("Paiement enregistré."); refresh();
 }
+const INV = {
+  fr: { t: "Facture", c: "Client", r: "Chambre", s: "Séjour", n: "nuit(s)", tot: "Total", p: "Payé", due: "Reste à payer", ty: "Merci de votre séjour !" },
+  en: { t: "Invoice", c: "Guest", r: "Room", s: "Stay", n: "night(s)", tot: "Total", p: "Paid", due: "Balance due", ty: "Thank you for your stay!" },
+  th: { t: "ใบแจ้งหนี้", c: "ลูกค้า", r: "ห้อง", s: "วันที่เข้าพัก", n: "คืน", tot: "ยอดรวม", p: "ชำระแล้ว", due: "ยอดคงเหลือ", ty: "ขอบคุณที่เข้าพัก" }
+};
+function invText(id) {
+  const r = resOf(id), x = S.rr.find(y => y.reservation_id === id) || {}, rm = S.rooms.find(y => y.id === x.room_id), g = S.guests.find(y => y.id === r.guest_id), L = INV[S.mlang] || INV.fr;
+  const d = s => Date.parse(s + "T00:00:00Z") / 864e5, n = d(x.check_out) - d(x.check_in), tot = Number(r.total_amount || 0), paid = paidOf(id);
+  const num = "F-" + String(x.check_in).replace(/-/g, "") + "-" + id.slice(0, 4).toUpperCase();
+  return `${L.t} ${num} — ${S.prop.name}\n${L.c} : ${g ? g.first_name + " " + g.last_name : "—"}\n${L.r} : ${rm ? roomNo(rm) : "?"}\n${L.s} : ${x.check_in} → ${x.check_out} (${n} ${L.n})\n${L.tot} : ${fmt(tot)}\n${L.p} : ${fmt(paid)}\n${L.due} : ${fmt(tot - paid)}\n${L.ty}`;
+}
+function closeInv() { const e = document.getElementById("inv"); if (e) e.remove(); document.body.classList.remove("pinv"); }
+function setInvLang(k) { S.mlang = k; S.msg = null; const id = S.invId; closeInv(); invoice(id); }
+function sendInv(kind) {
+  const id = S.invId, r = resOf(id), g = S.guests.find(y => y.id === r.guest_id) || {}, text = invText(id), enc = encodeURIComponent(text), num = waNumber(g.phone), subj = (INV[S.mlang] || INV.fr).t + " — " + S.prop.name;
+  if (kind === "wa") window.open("https://wa.me/" + (num || "") + "?text=" + enc, "_blank");
+  else if (kind === "mail") location.href = "mailto:" + encodeURIComponent(g.email || "") + "?subject=" + encodeURIComponent(subj) + "&body=" + enc;
+  else if (kind === "share" && navigator.share) navigator.share({ title: subj, text }).catch(() => {});
+  else navigator.clipboard.writeText(text).then(() => toast("Message copié."), () => toast("Copie impossible : sélectionnez le texte.", 1));
+}
 function invoice(id) {
+  S.invId = id;
   const r = resOf(id), x = S.rr.find(y => y.reservation_id === id) || {}, rm = S.rooms.find(y => y.id === x.room_id), g = S.guests.find(y => y.id === r.guest_id);
   const d = s => Date.parse(s + "T00:00:00Z") / 864e5, n = d(x.check_out) - d(x.check_in), tot = Number(r.total_amount || 0), paid = paidOf(id);
   const pays = (S.pays || []).filter(p => p.reservation_id === id).sort((a, b) => a.paid_at.localeCompare(b.paid_at))
     .map(p => `<tr><td>${esc(p.paid_at.slice(0, 10))}</td><td>${esc(KIND[p.kind])} · ${esc(MET[p.method])}</td><td style="text-align:right">${p.kind === "refund" ? "−" : ""}${esc(fmt(p.amount))}</td></tr>`).join("");
   const num = "F-" + String(x.check_in).replace(/-/g, "") + "-" + id.slice(0, 4).toUpperCase();
   document.body.classList.add("pinv");
-  document.body.insertAdjacentHTML("beforeend", `<div id="inv" style="position:fixed;inset:0;background:#fff;overflow:auto;padding:20px;z-index:50;font:15px system-ui"><div class="noprint"><button class="p" onclick="window.print()">Imprimer / PDF</button> <button onclick="document.getElementById('inv').remove();document.body.classList.remove('pinv')">Fermer</button></div>
+  document.body.insertAdjacentHTML("beforeend", `<div id="inv" style="position:fixed;inset:0;background:#fff;overflow:auto;padding:20px;z-index:50;font:15px system-ui"><div class="noprint"><p><button class="p" onclick="window.print()">Imprimer / PDF</button> <button onclick="closeInv()">Fermer</button></p>
+  <p><b>Envoyer la facture :</b> <button onclick="sendInv('wa')">WhatsApp</button> <button onclick="sendInv('mail')">E-mail</button> <button onclick="sendInv('share')">Partager…</button> <button onclick="sendInv('copy')">Copier</button></p>
+  <p>Langue du message : ${[["fr", "Français"], ["en", "English"], ["th", "ไทย"]].map(([k, n]) => `<button class="s ${S.mlang === k ? "p" : ""}" onclick="setInvLang('${k}')">${n}</button>`).join(" ")}</p></div>
   <h2 style="margin:16px 0 0">${esc(S.prop.name)}</h2><p>Facture ${esc(num)} · ${esc(today())}</p>
   <p><b>Client :</b> ${esc(g ? g.first_name + " " + g.last_name : "—")}<br><b>Chambre :</b> ${esc(rm?.number)}<br><b>Séjour :</b> ${esc(x.check_in)} → ${esc(x.check_out)} (${n} nuit(s))</p>
   <table style="width:100%"><tr><td>Hébergement</td><td style="text-align:right"><b>${esc(fmt(tot))}</b></td></tr></table>
@@ -516,7 +539,7 @@ function editView(id) {
   const r = resOf(id), x = S.rr.find(y => y.reservation_id === id) || {}, g = S.guests.find(y => y.id === r.guest_id);
   const opts = S.rooms.map(o => `<option value="${o.id}" ${o.id === x.room_id ? "selected" : ""}>${esc(o.number)} ${esc(o.name || "")}</option>`).join("");
   return `<div class="card"><h3>Modifier la réservation</h3><form class="g" onsubmit="saveEdit(event)">
-  ${g ? `<input name="fn" value="${esc(g.first_name)}" placeholder="Prénom" required><input name="ln" value="${esc(g.last_name)}" placeholder="Nom" required>` : "<p>Blocage externe (sans client)</p>"}
+  ${g ? `<input name="fn" value="${esc(g.first_name)}" placeholder="Prénom" required><input name="ln" value="${esc(g.last_name)}" placeholder="Nom" required><input name="em" type="email" value="${esc(g.email || "")}" placeholder="E-mail"><input name="ph" type="tel" value="${esc(g.phone || "")}" placeholder="Téléphone">` : "<p>Blocage externe (sans client)</p>"}
   <select name="room" required>${opts}</select><input name="ci" type="date" value="${esc(x.check_in)}" required><input name="co" type="date" value="${esc(x.check_out)}" required>
   <input name="ad" type="number" min="1" value="${esc(r.adults || 1)}"><input name="total" type="number" min="0" step="any" value="${esc(r.total_amount || "")}" placeholder="Total (${esc(S.prop.currency)})"><textarea name="notes" rows="2" placeholder="Notes" style="font:inherit;padding:9px;border-radius:8px;border:1px solid var(--line)">${esc(r.notes || "")}</textarea>
   <button class="p">Enregistrer</button><button type="button" onclick="S.edit=null;appView()">Fermer</button></form></div>`;
@@ -531,7 +554,7 @@ async function saveEdit(e) {
   if (tt !== Number(r.total_amount || 0)) upd.total_amount = tt;
   const a = await sb.from("reservations").update(upd).eq("id", id);
   if (a.error) return toast(a.error.message, 1);
-  if (r.guest_id && f.get("fn") !== null) await sb.from("guests").update({ first_name: f.get("fn"), last_name: f.get("ln") }).eq("id", r.guest_id);
+  if (r.guest_id && f.get("fn") !== null) await sb.from("guests").update({ first_name: f.get("fn"), last_name: f.get("ln"), email: f.get("em") || null, phone: f.get("ph") || null }).eq("id", r.guest_id);
   if (r.status === "checked_in" && room !== x.room_id) {
     await setRoomQ(x.room_id, "available");
     await setRoomQ(room, "occupied");
