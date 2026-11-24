@@ -125,7 +125,7 @@ const EN = {
   "Langue": "Language", "Couleurs": "Colors", "Couleurs personnalisées": "Custom colors", "Couleur principale": "Main color", "Couleur d’accent": "Accent color",
   "Appliquer": "Apply", "Réinitialiser": "Reset", "Ces réglages sont enregistrés sur cet appareil.": "These settings are saved on this device.",
   "Vert Stayora": "Stayora green", "Vert pétrole": "Deep teal", "Vert sauge": "Sage green", "Bleu océan": "Ocean blue", "Prune": "Plum", "Terre cuite": "Terracotta", "Graphite": "Graphite",
-  "Chargement…": "Loading…", "Externe": "External", "Envoyer la facture :": "Send the invoice:", "Notifications": "Notifications", "Messages": "Messages", "Chambres à nettoyer": "Rooms to clean", "Aucune chambre à nettoyer pour le moment.": "No rooms to clean right now.",
+  "Chargement…": "Loading…", "Externe": "External", "Facture PDF :": "PDF invoice:", "Envoyer le PDF": "Send the PDF", "Télécharger": "Download", "Autres envois :": "Other ways:", "PDF téléchargé : joignez-le à votre message ou à votre e-mail.": "PDF downloaded: attach it to your message or email.", "PDF téléchargé.": "PDF downloaded.", "WhatsApp + lien": "WhatsApp + link", "Image": "Image", "Image téléchargée : envoyez-la depuis votre galerie.": "Image downloaded: send it from your gallery.", "Lien indisponible (étape Supabase à faire) : envoi du texte.": "Link unavailable (Supabase step required): sending the text.", "Envoyer la facture :": "Send the invoice:", "Notifications": "Notifications", "Messages": "Messages", "Chambres à nettoyer": "Rooms to clean", "Aucune chambre à nettoyer pour le moment.": "No rooms to clean right now.",
   "Aucun message pour le moment.": "No messages yet.", "Publier pour l’équipe de ménage": "Publish for the cleaning team", "Dernier message publié :": "Last message published:",
   "Fonction de message absente : étape Supabase à faire.": "Message function missing: Supabase step required.", "Message publié pour l’équipe de ménage.": "Message published for the cleaning team.", "Hors ligne : dernières données de": "Offline: last data from", "Application et notifications": "App and notifications", "Installer l’application": "Install the app",
   "✔ Application installée.": "✔ App installed.", "✔ Notifications autorisées sur cet appareil.": "✔ Notifications allowed on this device.", "Notifications bloquées : réactivez-les dans les réglages du téléphone.": "Notifications blocked: turn them back on in the phone settings.",
@@ -255,6 +255,7 @@ function appCard() {
   return `<div class="card"><h3>Application et notifications</h3>${inst}${st}<p><button class="p" onclick="enablePush()">Activer les notifications</button> <button onclick="testPush()">Tester l’affichage</button> <button class="s" onclick="disablePush()">Désactiver</button></p>${note}<small>Les notifications automatiques (nouvelle réservation, arrivées, ménage) demandent l’étape serveur, pas encore installée.</small></div>`;
 }
 async function init() {
+  const qf = new URLSearchParams(location.search).get("f"); if (qf) return publicInvoice(qf);
   applyTheme(); document.documentElement.lang = LANG;
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
   const { data: { session } } = await sb.auth.getSession();
@@ -408,10 +409,14 @@ async function savePay(e) {
   toast("Paiement enregistré."); refresh();
 }
 const INV = {
-  fr: { t: "Facture", c: "Client", r: "Chambre", s: "Séjour", n: "nuit(s)", tot: "Total", p: "Payé", due: "Reste à payer", ty: "Merci de votre séjour !" },
-  en: { t: "Invoice", c: "Guest", r: "Room", s: "Stay", n: "night(s)", tot: "Total", p: "Paid", due: "Balance due", ty: "Thank you for your stay!" },
-  th: { t: "ใบแจ้งหนี้", c: "ลูกค้า", r: "ห้อง", s: "วันที่เข้าพัก", n: "คืน", tot: "ยอดรวม", p: "ชำระแล้ว", due: "ยอดคงเหลือ", ty: "ขอบคุณที่เข้าพัก" }
+  fr: { t: "Facture", c: "Client", r: "Chambre", s: "Séjour", n: "nuit(s)", tot: "Total", p: "Payé", due: "Reste à payer", ty: "Merci de votre séjour !", acc: "Hébergement", pay: "Paiements reçus", none: "Aucun paiement",
+    k: { payment: "Paiement", deposit: "Acompte", refund: "Remboursement" }, m: { cash: "Espèces", card: "Carte", transfer: "Virement", other: "Autre" } },
+  en: { t: "Invoice", c: "Guest", r: "Room", s: "Stay", n: "night(s)", tot: "Total", p: "Paid", due: "Balance due", ty: "Thank you for your stay!", acc: "Accommodation", pay: "Payments received", none: "No payments",
+    k: { payment: "Payment", deposit: "Deposit", refund: "Refund" }, m: { cash: "Cash", card: "Card", transfer: "Transfer", other: "Other" } },
+  th: { t: "ใบแจ้งหนี้", c: "ลูกค้า", r: "ห้อง", s: "วันที่เข้าพัก", n: "คืน", tot: "ยอดรวม", p: "ชำระแล้ว", due: "ยอดคงเหลือ", ty: "ขอบคุณที่เข้าพัก", acc: "ค่าที่พัก", pay: "การชำระเงินที่ได้รับ", none: "ยังไม่มีการชำระเงิน",
+    k: { payment: "ชำระเงิน", deposit: "มัดจำ", refund: "คืนเงิน" }, m: { cash: "เงินสด", card: "บัตร", transfer: "โอนเงิน", other: "อื่นๆ" } }
 };
+const fmN = (n, cur, lang) => Number(n || 0).toLocaleString(lang === "fr" ? "fr-FR" : "en-GB", { maximumFractionDigits: 2 }) + " " + cur;
 function invText(id) {
   const r = resOf(id), x = S.rr.find(y => y.reservation_id === id) || {}, rm = S.rooms.find(y => y.id === x.room_id), g = S.guests.find(y => y.id === r.guest_id), L = INV[S.mlang] || INV.fr;
   const d = s => Date.parse(s + "T00:00:00Z") / 864e5, n = d(x.check_out) - d(x.check_in), tot = Number(r.total_amount || 0), paid = paidOf(id);
@@ -427,23 +432,91 @@ function sendInv(kind) {
   else if (kind === "share" && navigator.share) navigator.share({ title: subj, text }).catch(() => {});
   else navigator.clipboard.writeText(text).then(() => toast("Message copié."), () => toast("Copie impossible : sélectionnez le texte.", 1));
 }
-function invoice(id) {
-  S.invId = id;
+function invSnap(id) {
   const r = resOf(id), x = S.rr.find(y => y.reservation_id === id) || {}, rm = S.rooms.find(y => y.id === x.room_id), g = S.guests.find(y => y.id === r.guest_id);
-  const d = s => Date.parse(s + "T00:00:00Z") / 864e5, n = d(x.check_out) - d(x.check_in), tot = Number(r.total_amount || 0), paid = paidOf(id);
-  const pays = (S.pays || []).filter(p => p.reservation_id === id).sort((a, b) => a.paid_at.localeCompare(b.paid_at))
-    .map(p => `<tr><td>${esc(p.paid_at.slice(0, 10))}</td><td>${esc(KIND[p.kind])} · ${esc(MET[p.method])}</td><td style="text-align:right">${p.kind === "refund" ? "−" : ""}${esc(fmt(p.amount))}</td></tr>`).join("");
-  const num = "F-" + String(x.check_in).replace(/-/g, "") + "-" + id.slice(0, 4).toUpperCase();
+  const d = s => Date.parse(s + "T00:00:00Z") / 864e5;
+  return { v: 1, lang: S.mlang, prop: S.prop.name, cur: S.prop.currency, num: "F-" + String(x.check_in).replace(/-/g, "") + "-" + id.slice(0, 4).toUpperCase(), date: today(), guest: g ? g.first_name + " " + g.last_name : "—", room: rm ? roomNo(rm) : "?",
+    ci: x.check_in, co: x.check_out, n: d(x.check_out) - d(x.check_in), tot: Number(r.total_amount || 0), paid: paidOf(id),
+    pays: (S.pays || []).filter(p => p.reservation_id === id).sort((a, b) => a.paid_at.localeCompare(b.paid_at)).map(p => ({ d: String(p.paid_at).slice(0, 10), k: p.kind, m: p.method, a: Number(p.amount) })) };
+}
+function invHtml(v) {
+  const L = INV[v.lang] || INV.fr, f = n => fmN(n, v.cur, v.lang);
+  const pays = (v.pays || []).map(p => `<tr><td>${esc(p.d)}</td><td>${esc((L.k || {})[p.k] || p.k)} · ${esc((L.m || {})[p.m] || p.m)}</td><td style="text-align:right">${p.k === "refund" ? "−" : ""}${esc(f(p.a))}</td></tr>`).join("");
+  return `<h2 style="margin:0">${esc(v.prop)}</h2><p>${esc(L.t)} ${esc(v.num)} · ${esc(v.date)}</p>
+  <p><b>${esc(L.c)} :</b> ${esc(v.guest)}<br><b>${esc(L.r)} :</b> ${esc(v.room)}<br><b>${esc(L.s)} :</b> ${esc(v.ci)} → ${esc(v.co)} (${esc(String(v.n))} ${esc(L.n)})</p>
+  <table style="width:100%"><tr><td>${esc(L.acc)}</td><td style="text-align:right"><b>${esc(f(v.tot))}</b></td></tr></table>
+  <h4>${esc(L.pay)}</h4><table style="width:100%">${pays || `<tr><td>${esc(L.none)}</td></tr>`}</table>
+  <p style="text-align:right;font-size:17px"><b>${esc(L.due)} : ${esc(f(Number(v.tot) - Number(v.paid)))}</b></p><p>${esc(L.ty)}</p>`;
+}
+function invPng(v, k) {
+  k = k || 1;
+  const L = INV[v.lang] || INV.fr, f = n => fmN(n, v.cur, v.lang), W = 900, FONT = "system-ui, 'Noto Sans Thai', sans-serif", cs = getComputedStyle(document.documentElement);
+  const teal = (cs.getPropertyValue("--teal") || "#014644").trim(), gold = (cs.getPropertyValue("--gold") || "#ecc377").trim();
+  const cv = document.createElement("canvas"); cv.width = W * k; cv.height = (900 + (v.pays || []).length * 46) * k; const c = cv.getContext("2d"); c.scale(k, k);
+  c.fillStyle = "#ffffff"; c.fillRect(0, 0, W, cv.height / k); c.fillStyle = teal; c.fillRect(0, 0, W, 124);
+  c.fillStyle = "#ffffff"; c.font = "bold 40px " + FONT; c.fillText(v.prop, 48, 62); c.fillStyle = gold; c.font = "26px " + FONT; c.fillText(`${L.t} ${v.num} · ${v.date}`, 48, 100);
+  let y = 190;
+  const row = (a, b, bold) => { c.fillStyle = "#1d2b2a"; c.font = (bold ? "bold " : "") + "28px " + FONT; c.textAlign = "left"; c.fillText(a, 48, y); c.textAlign = "right"; c.fillText(b, W - 48, y); c.textAlign = "left"; y += 46; };
+  const line = () => { c.fillStyle = "#dcd8cc"; c.fillRect(48, y - 26, W - 96, 2); y += 10; };
+  row(L.c, v.guest); row(L.r, v.room); row(L.s, `${v.ci} → ${v.co} (${v.n} ${L.n})`); line();
+  row(L.acc, f(v.tot), true); y += 8; c.fillStyle = teal; c.font = "bold 28px " + FONT; c.fillText(L.pay, 48, y); y += 46;
+  if (!(v.pays || []).length) row(L.none, ""); else v.pays.forEach(p => row(`${p.d} · ${(L.k || {})[p.k] || p.k} · ${(L.m || {})[p.m] || p.m}`, (p.k === "refund" ? "−" : "") + f(p.a)));
+  line(); row(L.due, f(Number(v.tot) - Number(v.paid)), true); y += 14; c.fillStyle = "#1d2b2a"; c.font = "26px " + FONT; c.fillText(L.ty, 48, y);
+  const out = document.createElement("canvas"); out.width = W * k; out.height = (y + 50) * k; out.getContext("2d").drawImage(cv, 0, 0); return out;
+}
+function pdfFromJpeg(jpg, w, h) {
+  const enc = new TextEncoder(), parts = [], offs = []; let len = 0;
+  const push = x => { const b = typeof x === "string" ? enc.encode(x) : x; parts.push(b); len += b.length; };
+  const obj = (n, body) => { offs[n] = len; push(n + " 0 obj\n" + body + "\nendobj\n"); };
+  const PW = 595.28, PH = 841.89, M = 36; let iw = PW - 2 * M, ih = iw * h / w; if (ih > PH - 2 * M) { ih = PH - 2 * M; iw = ih * w / h; }
+  push("%PDF-1.4\n");
+  obj(1, "<< /Type /Catalog /Pages 2 0 R >>");
+  obj(2, "<< /Type /Pages /Kids [3 0 R] /Count 1 >>");
+  obj(3, "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 " + PW + " " + PH + "] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>");
+  offs[4] = len; push("4 0 obj\n<< /Type /XObject /Subtype /Image /Width " + w + " /Height " + h + " /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length " + jpg.length + " >>\nstream\n"); push(jpg); push("\nendstream\nendobj\n");
+  const cont = "q " + iw.toFixed(2) + " 0 0 " + ih.toFixed(2) + " " + ((PW - iw) / 2).toFixed(2) + " " + (PH - M - ih).toFixed(2) + " cm /Im0 Do Q";
+  obj(5, "<< /Length " + cont.length + " >>\nstream\n" + cont + "\nendstream");
+  const xr = len; let t = "xref\n0 6\n0000000000 65535 f \n"; for (let i = 1; i <= 5; i++) t += String(offs[i]).padStart(10, "0") + " 00000 n \n";
+  push(t + "trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n" + xr + "\n%%EOF");
+  const out = new Uint8Array(len); let q = 0; for (const b of parts) { out.set(b, q); q += b.length; } return out;
+}
+function invPdfFile() {
+  const v = invSnap(S.invId), cv = invPng(v, 2), b64 = cv.toDataURL("image/jpeg", 0.92).split(",")[1], jpg = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  return { v, file: new File([pdfFromJpeg(jpg, cv.width, cv.height)], v.num + ".pdf", { type: "application/pdf" }) };
+}
+function saveFile(file) { const a = document.createElement("a"); a.href = URL.createObjectURL(file); a.download = file.name; document.body.appendChild(a); a.click(); a.remove(); }
+async function sendInvPdf() {
+  const { v, file } = invPdfFile();
+  if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: v.prop + " — " + v.num, text: v.prop + " — " + v.num }); } catch (e) {} }
+  else { saveFile(file); toast("PDF téléchargé : joignez-le à votre message ou à votre e-mail."); }
+}
+function downloadInvPdf() { const { file } = invPdfFile(); saveFile(file); toast("PDF téléchargé."); }
+async function sendInvImg() {
+  const v = invSnap(S.invId), cv = invPng(v), blob = await new Promise(r => cv.toBlob(r, "image/png")), file = new File([blob], v.num + ".png", { type: "image/png" });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: v.num, text: v.prop + " — " + v.num }); } catch (e) {} }
+  else { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = v.num + ".png"; document.body.appendChild(a); a.click(); a.remove(); toast("Image téléchargée : envoyez-la depuis votre galerie."); }
+}
+async function sendInvLink() {
+  const v = invSnap(S.invId), L = INV[v.lang] || INV.fr, g = S.guests.find(y => y.id === resOf(S.invId).guest_id) || {}, num = waNumber(g.phone);
+  const r = await sb.rpc("create_invoice_share", { p_prop: S.prop.id, p_data: v });
+  let text;
+  if (r.error) { toast("Lien indisponible (étape Supabase à faire) : envoi du texte.", 1); text = invText(S.invId); }
+  else text = `${L.t} ${v.num} — ${v.prop}\n${location.origin}${location.pathname}?f=${r.data}`;
+  window.open("https://wa.me/" + (num || "") + "?text=" + encodeURIComponent(text), "_blank");
+}
+async function publicInvoice(tok) {
+  $("#app").innerHTML = '<p style="padding:24px">…</p>';
+  const r = await sb.rpc("get_shared_invoice", { p_token: tok }), v = r.data;
+  $("#app").innerHTML = v && v.prop ? `<div style="max-width:640px;margin:16px auto;background:#fff;color:#1d2b2a;padding:20px;border-radius:12px;font:15px system-ui">${invHtml(v)}<p><button onclick="window.print()">Imprimer / PDF</button></p></div>` : `<p style="padding:24px">Lien invalide ou expiré. / Invalid or expired link.</p>`;
+}
+function invoice(id) {
+  S.invId = id; const v = invSnap(id);
   document.body.classList.add("pinv");
   document.body.insertAdjacentHTML("beforeend", `<div id="inv" style="position:fixed;inset:0;background:#fff;overflow:auto;padding:20px;z-index:50;font:15px system-ui"><div class="noprint"><p><button class="p" onclick="window.print()">Imprimer / PDF</button> <button onclick="closeInv()">Fermer</button></p>
-  <p><b>Envoyer la facture :</b> <button onclick="sendInv('wa')">WhatsApp</button> <button onclick="sendInv('mail')">E-mail</button> <button onclick="sendInv('share')">Partager…</button> <button onclick="sendInv('copy')">Copier</button></p>
-  <p>Langue du message : ${[["fr", "Français"], ["en", "English"], ["th", "ไทย"]].map(([k, n]) => `<button class="s ${S.mlang === k ? "p" : ""}" onclick="setInvLang('${k}')">${n}</button>`).join(" ")}</p></div>
-  <h2 style="margin:16px 0 0">${esc(S.prop.name)}</h2><p>Facture ${esc(num)} · ${esc(today())}</p>
-  <p><b>Client :</b> ${esc(g ? g.first_name + " " + g.last_name : "—")}<br><b>Chambre :</b> ${esc(rm?.number)}<br><b>Séjour :</b> ${esc(x.check_in)} → ${esc(x.check_out)} (${n} nuit(s))</p>
-  <table style="width:100%"><tr><td>Hébergement</td><td style="text-align:right"><b>${esc(fmt(tot))}</b></td></tr></table>
-  <h4>Paiements reçus</h4><table style="width:100%">${pays || "<tr><td>Aucun paiement</td></tr>"}</table>
-  <p style="text-align:right;font-size:17px"><b>Reste à payer : ${esc(fmt(tot - paid))}</b></p></div>`);
-  translateDom($("#inv"));
+  <p><b>Facture PDF :</b> <button class="p" onclick="sendInvPdf()">Envoyer le PDF</button> <button onclick="downloadInvPdf()">Télécharger</button></p>
+  <p><b>Autres envois :</b> <button onclick="sendInvLink()">WhatsApp + lien</button> <button onclick="sendInvImg()">Image</button></p>
+  <p>Langue du message : ${[["fr", "Français"], ["en", "English"], ["th", "ไทย"]].map(([k, n]) => `<button class="s ${S.mlang === k ? "p" : ""}" onclick="setInvLang('${k}')">${n}</button>`).join(" ")}</p></div>${invHtml(v)}</div>`);
+  translateDom(document.querySelector("#inv .noprint"));
 }
 const MSG = {
   fr: { hi: (n, p, d) => `Bonjour${n ? " " + n : ""},\nMénage du ${d} — ${p}`, now: "À nettoyer maintenant", dep: "Départs aujourd’hui (à nettoyer après le départ)", arr: "Arrivées aujourd’hui (chambre à préparer)", rm: "chambres", none: "Rien à nettoyer pour le moment.", ty: "Merci !" },
