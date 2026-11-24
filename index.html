@@ -330,7 +330,7 @@ function appView() {
   const tabs = S.role === "housekeeping" ? [["clean", "À nettoyer"], ["msg", "Messages"], ["set", "Notifications"]] : [["cal", "Calendrier"], ["res", "Réservations"], ["sum", "Résumé"], ["clean", "Ménage"], ["rooms", "Chambres"], ["set", "Réglages"]];
   view(`<header><div><span class="brand">STAYORA</span> <small>${esc(S.prop.name)}</small></div><button class="s" onclick="signOut()">Déconnexion</button></header>
   <main>${stats}
-  ${S.offline ? `<div class="card off">Hors ligne : dernières données de ${esc(new Date(S.offline).toLocaleTimeString(LOC(), { hour: "2-digit", minute: "2-digit" }))}.</div>` : ""}${todayCard()}<nav>${tabs.map(([k, l]) => `<button class="t ${S.tab === k ? "on" : ""}" onclick="S.tab='${k}';if('${k}'==='res')S.newN=0;appView()">${l}${k === "res" && S.newN && S.tab !== "res" ? ` <span class="bdg">${S.newN}</span>` : ""}${k === "msg" && hkUnread() && S.tab !== "msg" ? ` <span class="bdg">1</span>` : ""}</button>`).join("")}</nav>
+  ${S.offline ? `<div class="card off">Hors ligne : dernières données de ${esc(new Date(S.offline).toLocaleTimeString(LOC(), { hour: "2-digit", minute: "2-digit" }))}.</div>` : ""}${todayCard()}<nav>${tabs.map(([k, l]) => `<button class="t ${S.tab === k ? "on" : ""}" onclick="S.tab='${k}';S.edit=null;S.pay=null;if('${k}'==='res')S.newN=0;appView()">${l}${k === "res" && S.newN && S.tab !== "res" ? ` <span class="bdg">${S.newN}</span>` : ""}${k === "msg" && hkUnread() && S.tab !== "msg" ? ` <span class="bdg">1</span>` : ""}</button>`).join("")}</nav>
   ${S.role === "housekeeping" ? hkView() : S.tab === "cal" ? calView() : S.tab === "res" ? resView() : S.tab === "sum" ? sumView() : S.tab === "clean" ? cleanView() : S.tab === "set" ? setView() : roomsView()}</main>`);
 }
 
@@ -585,7 +585,7 @@ function dayTap(room, k) {
   const x = S.rr.find(z => z.room_id === room && z.is_blocking && z.check_in <= k && k < z.check_out);
   if (x) { if (S.role === "housekeeping") return toast(guestName(x.reservation_id) + " · " + x.check_in + " → " + x.check_out); return editRes(x.reservation_id); }
   if (S.role === "housekeeping") return;
-  S.pre = { room, ci: k }; S.tab = "res"; appView();
+  S.pre = { room, ci: k }; S.edit = null; S.pay = null; S.tab = "res"; appView();
 }
 
 function resView() {
@@ -607,7 +607,7 @@ function resView() {
   <button class="p">Réserver</button></form></div>
   <div class="card"><h3>Placer un client automatiquement</h3><p>Choisit la première chambre libre sur ces dates.</p><form class="g" onsubmit="autoPlace(event)"><input name="fn" placeholder="Prénom" required><input name="ln" placeholder="Nom" required><input name="ci" type="date" required><input name="co" type="date" required><input name="ad" type="number" min="1" value="1"><button class="p">Placer</button></form></div>${listCard}`;
 }
-function editRes(id) { S.edit = id; S.tab = "res"; appView(); window.scrollTo(0, 0); }
+function editRes(id) { S.edit = id; S.pay = null; S.tab = "res"; appView(); window.scrollTo(0, 0); }
 function editView(id) {
   const r = resOf(id), x = S.rr.find(y => y.reservation_id === id) || {}, g = S.guests.find(y => y.id === r.guest_id);
   const opts = S.rooms.map(o => `<option value="${o.id}" ${o.id === x.room_id ? "selected" : ""}>${esc(o.number)} ${esc(o.name || "")}</option>`).join("");
